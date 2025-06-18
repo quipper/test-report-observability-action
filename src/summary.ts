@@ -14,7 +14,7 @@ export const writeSummary = (testReport: TestReport, testCaseBaseDirectory: stri
         { data: 'Owner', header: true },
       ],
       ...failedTestCases.map((testCase) => [
-        { data: testCase.name },
+        { data: `<code>${testCase.name}</code>` },
         {
           data: `<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename}">${testCase.filename}</a>`,
         },
