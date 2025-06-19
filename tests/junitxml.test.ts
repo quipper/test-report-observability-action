@@ -56,9 +56,63 @@ describe('parseTestReportFiles', () => {
 })
 
 describe('parseJunitXml', () => {
-  it('should parse fixture.xml', async () => {
+  it('parses fixture.xml', async () => {
     const xml = await fs.readFile(path.join(__dirname, 'fixtures/fixture.xml'))
     expect(() => parseJunitXml(xml)).not.toThrow()
+  })
+
+  it('parses <failure> element with text node', () => {
+    const xml = `
+      <testsuite>
+        <testcase name="test1" time="1" file="file1">
+          <failure>Stack trace</failure>
+        </testcase>
+      </testsuite>
+    `
+    const junitXml = parseJunitXml(xml)
+    expect(junitXml.testsuite?.at(0)?.testcase?.at(0)?.failure).toStrictEqual('Stack trace')
+  })
+
+  it('parses <failure> element with message attribute', () => {
+    const xml = `
+      <testsuite>
+        <testcase name="test1" time="1" file="file1">
+          <failure message="Test failed"></failure>
+        </testcase>
+      </testsuite>
+    `
+    const junitXml = parseJunitXml(xml)
+    expect(junitXml.testsuite?.at(0)?.testcase?.at(0)?.failure).toStrictEqual({
+      '@_message': 'Test failed',
+    })
+  })
+
+  it('parses <failure> element with message attribute and text node', () => {
+    const xml = `
+      <testsuite>
+        <testcase name="test1" time="1" file="file1">
+          <failure message="Test failed">Stack trace</failure>
+        </testcase>
+      </testsuite>
+    `
+    const junitXml = parseJunitXml(xml)
+    expect(junitXml.testsuite?.at(0)?.testcase?.at(0)?.failure).toStrictEqual({
+      '@_message': 'Test failed',
+      '#text': 'Stack trace',
+    })
+  })
+
+  it('parses <failure> elements with text node', () => {
+    const xml = `
+      <testsuite>
+        <testcase name="test1" time="1" file="file1">
+          <failure>Stack trace</failure>
+          <failure>Another</failure>
+        </testcase>
+      </testsuite>
+    `
+    const junitXml = parseJunitXml(xml)
+    expect(junitXml.testsuite?.at(0)?.testcase?.at(0)?.failure).toStrictEqual(['Stack trace', 'Another'])
   })
 })
 

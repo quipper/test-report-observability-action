@@ -82,7 +82,8 @@ export const findTestCasesFromJunitXml = (junitXml: JunitXml, findOwners: FindOw
         owners: findOwners(filename),
         time: junitXmlTestCase['@_time'],
         success: !junitXmlTestCase.failure && !junitXmlTestCase.error,
-        failureMessage: getTestCaseFailureMessage(junitXmlTestCase),
+        failureMessage:
+          getTestCaseFailureMessage(junitXmlTestCase.failure) ?? getTestCaseFailureMessage(junitXmlTestCase.error),
       }
     }
     for (const nestedTestSuite of testSuite.testsuite ?? []) {
@@ -99,18 +100,25 @@ export const findTestCasesFromJunitXml = (junitXml: JunitXml, findOwners: FindOw
   return testCases
 }
 
-const getTestCaseFailureMessage = (testCase: JunitXmlTestCase): string | undefined => {
-  if (typeof testCase.failure === 'string') {
-    return testCase.failure
+const getTestCaseFailureMessage = (failure: JunitXmlTestCaseFailure | undefined): string | undefined => {
+  if (Array.isArray(failure)) {
+    return failure
+      .map((failure) => {
+        if (typeof failure === 'string') {
+          return failure
+        }
+        if (typeof failure === 'object' && failure != null && '@_message' in failure) {
+          return failure['@_message']
+        }
+        return ''
+      })
+      .join('\n')
   }
-  if (typeof testCase.failure === 'object' && testCase.failure != null) {
-    return testCase.failure['@_message']
+  if (typeof failure === 'string') {
+    return failure
   }
-  if (typeof testCase.error === 'string') {
-    return testCase.error
-  }
-  if (typeof testCase.error === 'object' && testCase.error != null) {
-    return testCase.error['@_message']
+  if (typeof failure === 'object' && failure != null && '@_message' in failure) {
+    return failure['@_message']
   }
 }
 
@@ -185,16 +193,8 @@ type JunitXmlTestCase = {
   '@_name': string
   '@_time': number
   '@_file'?: string
-  failure?:
-    | string
-    | {
-        '@_message'?: string
-      }
-  error?:
-    | string
-    | {
-        '@_message'?: string
-      }
+  failure?: JunitXmlTestCaseFailure
+  error?: JunitXmlTestCaseFailure
 }
 
 function assertTestCase(x: unknown): asserts x is JunitXmlTestCase {
@@ -211,30 +211,42 @@ function assertTestCase(x: unknown): asserts x is JunitXmlTestCase {
     )
   }
   if ('failure' in x) {
-    assert(
-      typeof x.failure === 'string' || typeof x.failure === 'object',
-      `Element <failure> must be a string or an object but was ${typeof x.failure}`,
-    )
-    if (typeof x.failure === 'object' && x.failure != null) {
-      assert('@_message' in x.failure, 'Element <failure> must have "message" attribute')
-      assert(
-        typeof x.failure['@_message'] === 'string',
-        `message attribute of <failure> must be a string but was ${typeof x.failure['@_message']}`,
-      )
-    }
+    assertJunitXmlTestCaseFailure(x.failure)
   }
   if ('error' in x) {
-    assert(
-      typeof x.error === 'string' || typeof x.error === 'object',
-      `Element <error> must be a string or an object but was ${typeof x.error}`,
-    )
-    if (typeof x.error === 'object' && x.error != null) {
-      assert('@_message' in x.error, 'Element <error> must have "message" attribute')
-      assert(
-        typeof x.error['@_message'] === 'string',
-        `message attribute of <error> must be a string but was ${typeof x.error['@_message']}`,
-      )
+    assertJunitXmlTestCaseFailure(x.error)
+  }
+}
+
+type JunitXmlTestCaseFailure =
+  | string
+  | {
+      '@_message'?: string
     }
+  | (
+      | string
+      | {
+          '@_message'?: string
+        }
+    )[]
+
+function assertJunitXmlTestCaseFailure(x: unknown): asserts x is JunitXmlTestCaseFailure {
+  if (Array.isArray(x)) {
+    for (const item of x) {
+      assertJunitXmlTestCaseFailure(item)
+    }
+    return
+  }
+  if (typeof x === 'string') {
+    return
+  }
+  assert(typeof x === 'object', `Element <failure> must be an object or string but was ${typeof x}`)
+  assert(x != null, 'Element <failure> must not be null')
+  if ('@_message' in x) {
+    assert(
+      typeof x['@_message'] === 'string',
+      `message attribute of <failure> must be a string but was ${typeof x['@_message']}`,
+    )
   }
 }
 
