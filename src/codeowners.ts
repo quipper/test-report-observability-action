@@ -1,3 +1,6 @@
+import * as core from '@actions/core'
+import * as fs from 'fs/promises'
+import * as path from 'path'
 import { Minimatch } from 'minimatch'
 
 export type Rule = {
@@ -78,3 +81,28 @@ export class Matcher {
 }
 
 export const createMatcher = (codeownersContent: string) => new Matcher(parse(codeownersContent))
+
+type Finder = (filename: string) => string[]
+
+export const createFinder = async (baseDirectory: string): Promise<Finder> => {
+  const tryAccess = async (path: string): Promise<string | null> => {
+    try {
+      await fs.access(path)
+      return path
+    } catch {
+      return null
+    }
+  }
+  // https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-file-location
+  const codeowners =
+    (await tryAccess('.github/CODEOWNERS')) ?? (await tryAccess('CODEOWNERS')) ?? (await tryAccess('docs/CODEOWNERS'))
+  if (!codeowners) {
+    return () => []
+  }
+  core.info(`Parsing ${codeowners}`)
+  const matcher = createMatcher(await fs.readFile(codeowners, 'utf8'))
+  return (filename: string) => {
+    const canonicalPath = path.join(baseDirectory, filename)
+    return matcher.findOwners(canonicalPath).map((owner) => owner.replace(/^@.+?\/|^@/, '')) // Remove leading @organization/
+  }
+}

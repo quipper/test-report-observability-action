@@ -21,7 +21,9 @@ const main = async (): Promise<void> => {
   )
 }
 
-main().catch((e: Error) => {
-  core.setFailed(e)
+try {
+  await main()
+} catch (e) {
+  core.setFailed(e instanceof Error ? e : String(e))
   console.error(e)
-})
+}
