@@ -10,7 +10,7 @@
   "dependencies": {
     "@actions/core": "1.11.1",
     "@actions/glob": "0.5.0",
-    "@datadog/datadog-api-client": "1.42.0",
+    "@datadog/datadog-api-client": "1.43.0",
     "fast-xml-parser": "5.2.5",
     "minimatch": "10.0.3"
   },
