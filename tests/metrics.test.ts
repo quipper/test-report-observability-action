@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { TestReport } from '../src/junitxml.js'
-import { Context, getTestReportMetrics } from '../src/metrics.js'
+import type { TestReport } from '../src/junitxml.js'
+import { type Context, getTestReportMetrics } from '../src/metrics.js'
 
 describe('getTestReportMetrics', () => {
   it('returns metrics for a test report', () => {

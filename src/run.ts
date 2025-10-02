@@ -2,10 +2,10 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import { createFinder } from './codeowners.js'
 import { createMetricsClient } from './datadog.js'
-import { getTestReportMetrics } from './metrics.js'
+import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
+import { getTestReportMetrics } from './metrics.js'
 import { writeSummary } from './summary.js'
-import { Context } from './github.js'
 
 type Inputs = {
   junitXmlPath: string
