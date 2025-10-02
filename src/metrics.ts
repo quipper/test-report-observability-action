@@ -1,5 +1,5 @@
-import { v1 } from '@datadog/datadog-api-client'
-import { TestReport, TestFile, TestCase } from './junitxml.js'
+import type { v1 } from '@datadog/datadog-api-client'
+import type { TestCase, TestFile, TestReport } from './junitxml.js'
 
 export type Metrics = {
   series: v1.Series[]

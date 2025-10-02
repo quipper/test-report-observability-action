@@ -1,6 +1,6 @@
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 import * as core from '@actions/core'
-import * as fs from 'fs/promises'
-import * as path from 'path'
 import { Minimatch } from 'minimatch'
 
 export type Rule = {
@@ -51,7 +51,7 @@ const compile = (rule: Rule): RuleMatcher => {
   return {
     match: (filename: string) => {
       if (!filename.startsWith('/')) {
-        filename = '/' + filename
+        filename = `/${filename}`
       }
       return m.match(filename)
     },

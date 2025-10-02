@@ -1,7 +1,7 @@
+import * as path from 'node:path'
 import * as core from '@actions/core'
-import * as path from 'path'
-import { TestReport } from './junitxml.js'
-import { Context } from './github.js'
+import type { Context } from './github.js'
+import type { TestReport } from './junitxml.js'
 
 export const writeSummary = (testReport: TestReport, testCaseBaseDirectory: string, context: Context) => {
   const failedTestCases = testReport.testCases.filter((testCase) => !testCase.success)

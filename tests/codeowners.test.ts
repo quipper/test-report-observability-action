@@ -1,5 +1,5 @@
+import { describe, expect, it } from 'vitest'
 import * as codeowners from '../src/codeowners.js'
-import { describe, it, expect } from 'vitest'
 
 describe('class Matcher', () => {
   const matcher = new codeowners.Matcher([
