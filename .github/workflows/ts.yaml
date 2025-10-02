@@ -55,6 +55,5 @@ jobs:
           node-version: 20.19.5
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
-      - run: pnpm lint --fix
-      - run: pnpm format
+      - run: pnpm exec biome check --write .
       - uses: int128/update-generated-files-action@7a629b44362c7b2ad208d5d08aa074d399c0cfea # v2.61.0
