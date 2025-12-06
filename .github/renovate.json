@@ -4,16 +4,20 @@
     "config:recommended",
     ":automergeMinor",
     ":automergeDigest",
-    ":reviewer(quipper/k12-dev-tech-strategy-devops)",
     "github>int128/typescript-action-renovate-config#v1.8.0",
     "helpers:pinGitHubActionDigests"
   ],
   "platformAutomerge": false,
+  "reviewers": [
+    "quipper/k12-dev-tech-strategy-devops"
+  ],
   "labels": [
     "renovate",
     "renovate/{{depName}}"
   ],
   "timezone": "Asia/Tokyo",
-  "schedule": ["before 9am on Monday"],
+  "schedule": [
+    "before 9am on Monday"
+  ],
   "minimumReleaseAge": "7 days"
 }
