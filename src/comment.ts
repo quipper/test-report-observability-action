@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
-import { Octokit } from '@octokit/action'
-import { Context } from './github.js'
-import { TestReport } from './junitxml.js'
+import type { Octokit } from '@octokit/action'
+import type { Context } from './github.js'
+import type { TestReport } from './junitxml.js'
 
 export const postComment = async (testReport: TestReport, octokit: Octokit, context: Context) => {}
 
