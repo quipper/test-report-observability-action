@@ -140,10 +140,12 @@ const JunitXmlTestCaseFailure = z.union([
   z.array(z.string()),
   z.object({
     '@_message': z.string().optional(),
+    '#text': z.string().optional(),
   }),
   z.array(
     z.object({
       '@_message': z.string().optional(),
+      '#text': z.string().optional(),
     }),
   ),
 ])

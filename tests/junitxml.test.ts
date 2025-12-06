@@ -96,6 +96,7 @@ describe('parseJunitXml', () => {
     const junitXml = parseJunitXml(xml)
     expect(junitXml.testsuite?.at(0)?.testcase?.at(0)?.failure).toStrictEqual({
       '@_message': 'Test failed',
+      '#text': 'Stack trace',
     })
   })
 
