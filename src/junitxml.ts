@@ -1,8 +1,8 @@
-import assert from 'node:assert'
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
 import * as core from '@actions/core'
 import { XMLParser } from 'fast-xml-parser'
+import * as z from 'zod'
 
 export type TestReport = {
   testFiles: TestFile[]
@@ -135,120 +135,53 @@ const parseTestReportFilesToJunitXml = async (testReportFiles: string[]): Promis
   return junitXmls
 }
 
-type JunitXml = {
-  testsuites?: {
-    testsuite?: JunitXmlTestSuite[]
-  }
-  testsuite?: JunitXmlTestSuite[]
-}
+const JunitXmlTestCaseFailure = z.union([
+  z.string(),
+  z.array(z.string()),
+  z.object({
+    '@_message': z.string().optional(),
+    '#text': z.string().optional(),
+  }),
+  z.array(
+    z.object({
+      '@_message': z.string().optional(),
+      '#text': z.string().optional(),
+    }),
+  ),
+])
 
-function assertJunitXml(x: unknown): asserts x is JunitXml {
-  assert(typeof x === 'object', 'Root document must be an object')
-  assert(x != null, 'Root document must not be null')
+type JunitXmlTestCaseFailure = z.infer<typeof JunitXmlTestCaseFailure>
 
-  if ('testsuites' in x) {
-    assert(typeof x.testsuites === 'object', 'Element <testsuites> must be an object')
-    assert(x.testsuites != null, 'Element <testsuites> must not be null')
+const JunitXmlTestCase = z.object({
+  '@_name': z.string(),
+  '@_time': z.number(),
+  '@_file': z.string().optional(),
+  failure: JunitXmlTestCaseFailure.optional(),
+  error: JunitXmlTestCaseFailure.optional(),
+})
 
-    if ('testsuite' in x.testsuites) {
-      assert(Array.isArray(x.testsuites.testsuite), 'Element <testsuite> must be an array')
-      for (const testsuite of x.testsuites.testsuite) {
-        assertTestSuite(testsuite)
-      }
-    }
-  }
+type JunitXmlTestCase = z.infer<typeof JunitXmlTestCase>
 
-  if ('testsuite' in x) {
-    assert(Array.isArray(x.testsuite), 'Element <testsuite> must be an array')
-    for (const testsuite of x.testsuite) {
-      assertTestSuite(testsuite)
-    }
-  }
-}
+const JunitXmlTestSuite = z.object({
+  get testsuite() {
+    return z.array(JunitXmlTestSuite).optional()
+  },
+  testcase: z.array(JunitXmlTestCase).optional(),
+  '@_file': z.string().optional(),
+})
 
-type JunitXmlTestSuite = {
-  testsuite?: JunitXmlTestSuite[]
-  testcase?: JunitXmlTestCase[]
-  '@_file'?: string
-}
+type JunitXmlTestSuite = z.infer<typeof JunitXmlTestSuite>
 
-function assertTestSuite(x: unknown): asserts x is JunitXmlTestSuite {
-  assert(typeof x === 'object', 'Element <testsuite> must be an object')
-  assert(x != null, 'Element <testsuite> must not be null')
-  if ('testsuite' in x) {
-    assert(Array.isArray(x.testsuite), 'Element <testsuite> must be an array')
-    for (const testsuite of x.testsuite) {
-      assertTestSuite(testsuite)
-    }
-  }
-  if ('testcase' in x) {
-    assert(Array.isArray(x.testcase), 'Element <testcase> must be an array')
-    for (const testcase of x.testcase) {
-      assertTestCase(testcase)
-    }
-  }
-}
+const JunitXml = z.object({
+  testsuites: z
+    .object({
+      testsuite: z.array(JunitXmlTestSuite).optional(),
+    })
+    .optional(),
+  testsuite: z.array(JunitXmlTestSuite).optional(),
+})
 
-type JunitXmlTestCase = {
-  '@_name': string
-  '@_time': number
-  '@_file'?: string
-  failure?: JunitXmlTestCaseFailure
-  error?: JunitXmlTestCaseFailure
-}
-
-function assertTestCase(x: unknown): asserts x is JunitXmlTestCase {
-  assert(typeof x === 'object', `Element <testcase> must be an object but was ${typeof x}`)
-  assert(x != null, 'Element <testcase> must not be null')
-  assert('@_name' in x, 'Element <testcase> must have "name" attribute')
-  assert(typeof x['@_name'] === 'string', `name attribute of <testcase> must be a string but was ${typeof x['@_name']}`)
-  assert('@_time' in x, 'Element <testcase> must have "time" attribute')
-  assert(typeof x['@_time'] === 'number', `time attribute of <testcase> must be a number but was ${typeof x['@_time']}`)
-  if ('@_file' in x) {
-    assert(
-      typeof x['@_file'] === 'string',
-      `file attribute of <testcase> must be a string but was ${typeof x['@_file']}`,
-    )
-  }
-  if ('failure' in x) {
-    assertJunitXmlTestCaseFailure(x.failure)
-  }
-  if ('error' in x) {
-    assertJunitXmlTestCaseFailure(x.error)
-  }
-}
-
-type JunitXmlTestCaseFailure =
-  | string
-  | {
-      '@_message'?: string
-    }
-  | (
-      | string
-      | {
-          '@_message'?: string
-        }
-    )[]
-
-function assertJunitXmlTestCaseFailure(x: unknown): asserts x is JunitXmlTestCaseFailure {
-  if (Array.isArray(x)) {
-    for (const item of x) {
-      assertJunitXmlTestCaseFailure(item)
-    }
-    return
-  }
-  if (typeof x === 'string') {
-    return
-  }
-  assert(typeof x === 'object', `Element <failure> must be an object or string but was ${typeof x}`)
-  assert(x != null, 'Element <failure> must not be null')
-  if ('@_message' in x) {
-    assert(
-      typeof x['@_message'] === 'string',
-      `message attribute of <failure> must be a string but was ${typeof x['@_message']}`,
-    )
-  }
-}
+type JunitXml = z.infer<typeof JunitXml>
 
 export const parseJunitXml = (xml: string | Buffer): JunitXml => {
   const parser = new XMLParser({
@@ -269,7 +202,6 @@ export const parseJunitXml = (xml: string | Buffer): JunitXml => {
       return attrValue
     },
   })
-  const parsed: unknown = parser.parse(xml)
-  assertJunitXml(parsed)
-  return parsed
+  const parsed = parser.parse(xml)
+  return JunitXml.parse(parsed)
 }
