@@ -18,8 +18,8 @@ importers:
         specifier: 1.51.0
         version: 1.51.0
       fast-xml-parser:
-        specifier: 5.3.6
-        version: 5.3.6
+        specifier: 5.3.7
+        version: 5.3.7
       minimatch:
         specifier: 10.2.0
         version: 10.2.0
@@ -556,8 +556,8 @@ packages:
     resolution: {integrity: sha512-JhFGDVJ7tmDJItKhYgJCGLOWjuK9vPxiXoUFLwLDc99NlmklilbiQJwoctZtt13+xMw91MCk/REan6MWHqDjyA==}
     engines: {node: '>=12.0.0'}
 
-  fast-xml-parser@5.3.6:
-    resolution: {integrity: sha512-QNI3sAvSvaOiaMl8FYU4trnEzCwiRr8XMWgAHzlrWpTSj+QaCSvOf1h82OEP1s4hiAXhnbXSyFWCf4ldZzZRVA==}
+  fast-xml-parser@5.3.7:
+    resolution: {integrity: sha512-JzVLro9NQv92pOM/jTCR6mHlJh2FGwtomH8ZQjhFj/R29P2Fnj38OgPJVtcvYw6SuKClhgYuwUZf5b3rd8u2mA==}
     hasBin: true
 
   fdir@6.5.0:
@@ -1208,7 +1208,7 @@ snapshots:
 
   expect-type@1.2.2: {}
 
-  fast-xml-parser@5.3.6:
+  fast-xml-parser@5.3.7:
     dependencies:
       strnum: 2.1.2
 
