@@ -187,12 +187,12 @@ export const parseJunitXml = (xml: string | Buffer): JunitXml => {
   const parser = new XMLParser({
     ignoreAttributes: false,
     removeNSPrefix: true,
-    isArray: (_: string, jPath: string): boolean => {
-      const elementName = jPath.split('.').pop()
+    isArray: (_: string, jPath: unknown): boolean => {
+      const elementName = String(jPath).split('.').pop()
       return elementName === 'testsuite' || elementName === 'testcase'
     },
-    attributeValueProcessor: (attrName: string, attrValue: string, jPath: string) => {
-      const elementName = jPath.split('.').pop()
+    attributeValueProcessor: (attrName: string, attrValue: string, jPath: unknown) => {
+      const elementName = String(jPath).split('.').pop()
       if (
         (elementName === 'testsuites' || elementName === 'testsuite' || elementName === 'testcase') &&
         attrName === 'time'
