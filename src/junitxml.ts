@@ -185,6 +185,9 @@ type JunitXml = z.infer<typeof JunitXml>
 
 export const parseJunitXml = (xml: string | Buffer): JunitXml => {
   const parser = new XMLParser({
+    processEntities: {
+      maxTotalExpansions: 100000,
+    },
     ignoreAttributes: false,
     removeNSPrefix: true,
     isArray: (_: string, jPath: unknown): boolean => {
