@@ -18,8 +18,8 @@ importers:
         specifier: 1.53.0
         version: 1.53.0
       fast-xml-parser:
-        specifier: 5.5.8
-        version: 5.5.8
+        specifier: 5.5.9
+        version: 5.5.9
       minimatch:
         specifier: 10.2.4
         version: 10.2.4
@@ -559,8 +559,8 @@ packages:
   fast-xml-builder@1.1.4:
     resolution: {integrity: sha512-f2jhpN4Eccy0/Uz9csxh3Nu6q4ErKxf0XIsasomfOihuSUa3/xw6w8dnOtCDgEItQFJG8KyXPzQXzcODDrrbOg==}
 
-  fast-xml-parser@5.5.8:
-    resolution: {integrity: sha512-Z7Fh2nVQSb2d+poDViM063ix2ZGt9jmY1nWhPfHBOK2Hgnb/OW3P4Et3P/81SEej0J7QbWtJqxO05h8QYfK7LQ==}
+  fast-xml-parser@5.5.9:
+    resolution: {integrity: sha512-jldvxr1MC6rtiZKgrFnDSvT8xuH+eJqxqOBThUVjYrxssYTo1avZLGql5l0a0BAERR01CadYzZ83kVEkbyDg+g==}
     hasBin: true
 
   fdir@6.5.0:
@@ -1221,7 +1221,7 @@ snapshots:
     dependencies:
       path-expression-matcher: 1.2.0
 
-  fast-xml-parser@5.5.8:
+  fast-xml-parser@5.5.9:
     dependencies:
       fast-xml-builder: 1.1.4
       path-expression-matcher: 1.2.0
