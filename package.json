@@ -10,7 +10,7 @@
     "@actions/core": "2.0.3",
     "@actions/glob": "0.6.1",
     "@datadog/datadog-api-client": "1.53.0",
-    "fast-xml-parser": "5.5.9",
+    "fast-xml-parser": "5.5.10",
     "minimatch": "10.2.4",
     "zod": "4.3.6"
   },
