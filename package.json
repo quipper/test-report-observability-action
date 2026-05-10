@@ -12,7 +12,7 @@
     "@datadog/datadog-api-client": "1.56.0",
     "fast-xml-parser": "5.7.2",
     "minimatch": "10.2.5",
-    "zod": "4.3.6"
+    "zod": "4.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
