@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
-    "@tsconfig/node22": "22.0.5",
+    "@tsconfig/node24": "24.0.4",
     "@types/node": "24.13.1",
     "@vercel/ncc": "0.38.4",
     "pnpm": "10.34.1",
