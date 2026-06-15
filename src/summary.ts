@@ -32,9 +32,15 @@ export const writeSummary = (
   if (flakyTestCases.length > 0) {
     core.summary.addHeading('Flaky tests', 2)
     for (const testCase of flakyTestCases) {
-      core.summary.addHeading(`${testCase.filename}: ${testCase.name}`, 3)
+      core.summary.addHeading(
+        `<a href="${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename}">${testCase.filename}</a>` +
+          `: ${testCase.name}`,
+        3,
+      )
       if (testCase.owners.length > 0) {
+        core.summary.addRaw('<p>')
         core.summary.addRaw(`Owner: ${testCase.owners.join(', ')}`)
+        core.summary.addRaw('</p>')
       }
       if (testCase.failureMessage) {
         core.summary.addCodeBlock(testCase.failureMessage)
