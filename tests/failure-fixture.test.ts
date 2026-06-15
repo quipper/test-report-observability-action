@@ -1,5 +1,5 @@
 import { it } from 'vitest'
-import { getContext } from '../src/github'
+import { getContext } from '../src/github.js'
 
 it.skipIf(process.env.ENABLE_TEST_FAILUTE_FIXTURE !== 'true')(
   'fails intentionally on the first attempt in GitHub Actions',
