@@ -13,6 +13,7 @@ type Inputs = {
   metricNamePrefix: string
   filterTestFileSlowerThan: number
   filterTestCaseSlowerThan: number
+  failedTestReportArtifactNamePrefix: string
   sendTestCaseSuccess: boolean
   sendTestCaseFailure: boolean
   testCaseBaseDirectory: string
@@ -27,11 +28,13 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   const junitXmlFiles = await junitXmlGlob.glob()
   const testReport = await parseTestReportFiles(junitXmlFiles, await createFinder(inputs.testCaseBaseDirectory))
 
-  await uploadCurrentFailedTestReport(testReport, context)
-  const flakyTestCases = await findFlakyTestCases(testReport, context)
-  core.startGroup('Flaky test cases')
-  core.info(JSON.stringify(flakyTestCases, undefined, 2))
-  core.endGroup()
+  await uploadCurrentFailedTestReport(testReport, inputs, context)
+  const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
+  if (flakyTestCases.length > 0) {
+    core.startGroup('Flaky test cases')
+    core.info(JSON.stringify(flakyTestCases, undefined, 2))
+    core.endGroup()
+  }
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.

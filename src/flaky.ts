@@ -6,6 +6,10 @@ import { z } from 'zod'
 import type { Context } from './github.js'
 import type { TestReport } from './junitxml.js'
 
+type FlakyTestConfig = {
+  failedTestReportArtifactNamePrefix: string
+}
+
 const FailedTestCase = z.object({
   name: z.string(),
   filename: z.string(),
@@ -22,7 +26,11 @@ const FailedTestReport = z.object({
 
 type FailedTestReport = z.infer<typeof FailedTestReport>
 
-export const uploadCurrentFailedTestReport = async (testReport: TestReport, context: Context) => {
+export const uploadCurrentFailedTestReport = async (
+  testReport: TestReport,
+  config: FlakyTestConfig,
+  context: Context,
+) => {
   const failedTestCases = testReport.testCases.filter((testCase) => !testCase.success)
   if (failedTestCases.length === 0) {
     return
@@ -31,7 +39,7 @@ export const uploadCurrentFailedTestReport = async (testReport: TestReport, cont
     workflow: context.workflow,
     testCases: failedTestCases,
   }
-  const failedTestReportArtifactName = `failed-test-report-${context.runAttempt}`
+  const failedTestReportArtifactName = `${config.failedTestReportArtifactNamePrefix}${context.runAttempt}`
   core.info(`Uploading the artifact: ${failedTestReportArtifactName}`)
   const tempDir = await fs.mkdtemp(path.join(context.runnerTemp, 'failed-test-report-'))
   const reportFilePath = path.join(tempDir, 'report.json')
@@ -40,8 +48,8 @@ export const uploadCurrentFailedTestReport = async (testReport: TestReport, cont
   await artifactClient.uploadArtifact(failedTestReportArtifactName, [reportFilePath], tempDir)
 }
 
-export const findFlakyTestCases = async (testReport: TestReport, context: Context) => {
-  const lastFailedTestReport = await findLastFailedTestReport(context)
+export const findFlakyTestCases = async (testReport: TestReport, config: FlakyTestConfig, context: Context) => {
+  const lastFailedTestReport = await findLastFailedTestReport(config, context)
   if (lastFailedTestReport === undefined) {
     return []
   }
@@ -63,15 +71,20 @@ const findFlakyTestCasesFromReports = (
   return flakyTestCases
 }
 
-const findLastFailedTestReport = async (context: Context): Promise<FailedTestReport | undefined> => {
+const findLastFailedTestReport = async (
+  config: FlakyTestConfig,
+  context: Context,
+): Promise<FailedTestReport | undefined> => {
   if (context.runAttempt === 1) {
     return
   }
   const artifactClient = new DefaultArtifactClient()
   const lastFailedTestReportArtifact = await artifactClient
-    .getArtifact(`failed-test-report-${context.runAttempt - 1}`)
-    .catch(() => null)
-  if (lastFailedTestReportArtifact === null) {
+    .getArtifact(`${config.failedTestReportArtifactNamePrefix}${context.runAttempt - 1}`)
+    .catch((e) => {
+      core.info(`No artifact found for the last failed test report: ${e}`)
+    })
+  if (lastFailedTestReportArtifact === undefined) {
     return
   }
 

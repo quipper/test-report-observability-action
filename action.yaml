@@ -17,6 +17,10 @@ inputs:
     description: Filter test cases slower than the threshold (in seconds)
     required: true
     default: '1'
+  failed-test-report-artifact-name-prefix:
+    description: The artifact name prefix of the failed test report
+    required: true
+    default: failed-test-report-${{ github.job }}-${{ strategy.job-index }}-
   send-test-case-success:
     description: Send succeeded test cases
     required: true
