@@ -1,12 +1,13 @@
 {
   "private": true,
   "scripts": {
-    "check": "biome check",
+    "check": "biome migrate --write && biome check --fix",
     "build": "ncc build --source-map --license licenses.txt src/index.ts",
     "test": "vitest"
   },
   "type": "module",
   "dependencies": {
+    "@actions/artifact": "6.2.1",
     "@actions/core": "3.0.1",
     "@actions/glob": "0.7.0",
     "@datadog/datadog-api-client": "1.58.0",
