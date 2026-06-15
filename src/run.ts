@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import { createFinder } from './codeowners.js'
 import { createMetricsClient } from './datadog.js'
+import { findFlakyTestCases, uploadCurrentFailedTestReport } from './flaky.js'
 import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
 import { getTestReportMetrics } from './metrics.js'
@@ -25,6 +26,12 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   const junitXmlGlob = await glob.create(inputs.junitXmlPath)
   const junitXmlFiles = await junitXmlGlob.glob()
   const testReport = await parseTestReportFiles(junitXmlFiles, await createFinder(inputs.testCaseBaseDirectory))
+
+  await uploadCurrentFailedTestReport(testReport, context)
+  const flakyTestCases = await findFlakyTestCases(testReport, context)
+  core.startGroup('Flaky test cases')
+  core.info(JSON.stringify(flakyTestCases, undefined, 2))
+  core.endGroup()
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.
