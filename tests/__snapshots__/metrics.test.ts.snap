@@ -139,3 +139,68 @@ exports[`getTestReportMetrics > returns metrics for a test report 1`] = `
   },
 ]
 `;
+
+exports[`getTestReportMetrics > returns metrics with flaky test cases 1`] = `
+[
+  {
+    "metric": "testreport.testcase.success_count",
+    "points": [
+      [
+        1234567890,
+        1,
+      ],
+    ],
+    "tags": [
+      "env:ci",
+      "testcase_name:testCase1",
+      "testcase_file:tests/registration.test.js",
+    ],
+    "type": "count",
+  },
+  {
+    "metric": "testreport.testcase.success_count",
+    "points": [
+      [
+        1234567890,
+        1,
+      ],
+    ],
+    "tags": [
+      "env:ci",
+      "testcase_name:testCase2",
+      "testcase_file:tests/registration.test.js",
+    ],
+    "type": "count",
+  },
+  {
+    "metric": "testreport.testcase.success_count",
+    "points": [
+      [
+        1234567890,
+        1,
+      ],
+    ],
+    "tags": [
+      "env:ci",
+      "testcase_name:testCase3",
+      "testcase_file:tests/registration.test.js",
+    ],
+    "type": "count",
+  },
+  {
+    "metric": "testreport.testcase.flaky_failure_count",
+    "points": [
+      [
+        1234567890,
+        1,
+      ],
+    ],
+    "tags": [
+      "env:ci",
+      "testcase_name:testCase2",
+      "testcase_file:tests/registration.test.js",
+    ],
+    "type": "count",
+  },
+]
+`;
