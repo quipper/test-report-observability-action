@@ -89,7 +89,7 @@ describe('getTestReportMetrics', () => {
       sendTestCaseFailure: true,
     }
 
-    const metrics = getTestReportMetrics(testReport, context)
+    const metrics = getTestReportMetrics(testReport, [], context)
     expect(metrics.series).toMatchSnapshot()
   })
 })
