@@ -30,11 +30,6 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
 
   await uploadCurrentFailedTestReport(testReport, inputs, context)
   const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
-  if (flakyTestCases.length > 0) {
-    core.startGroup('Flaky test cases')
-    core.info(JSON.stringify(flakyTestCases, undefined, 2))
-    core.endGroup()
-  }
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.
@@ -62,7 +57,7 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   await metricsClient.submitMetrics(metrics.series, `${junitXmlFiles.length} files`)
   await metricsClient.submitDistributionPoints(metrics.distributionPointsSeries, `${junitXmlFiles.length} files`)
 
-  writeSummary(testReport, inputs.testCaseBaseDirectory, context)
+  writeSummary(testReport, flakyTestCases, inputs.testCaseBaseDirectory, context)
   await core.summary.write()
 }
 

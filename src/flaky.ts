@@ -17,7 +17,7 @@ const FailedTestCase = z.object({
   failureMessage: z.string().optional(),
 })
 
-type FailedTestCase = z.infer<typeof FailedTestCase>
+export type FailedTestCase = z.infer<typeof FailedTestCase>
 
 const FailedTestReport = z.object({
   workflow: z.string(),
