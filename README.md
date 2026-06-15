@@ -15,7 +15,7 @@ jobs:
       - run: pnpm test
       - uses: quipper/test-report-observability-action@v0
         with:
-          junit-xml-path: '**/junit.xml'
+          junit-xml-path: "**/junit.xml"
 ```
 
 This action sends the metrics on `push`, `schedule`, or `workflow_run` events by default.
@@ -45,7 +45,7 @@ You can set `send-test-case-success` to send all test cases.
 ```yaml
 - uses: quipper/test-report-observability-action@v0
   with:
-    junit-xml-path: '**/junit.xml'
+    junit-xml-path: "**/junit.xml"
     send-test-case-success: true
 ```
 
@@ -57,6 +57,17 @@ It has the following tags:
 - `testcase_name`
 - `testcase_file`
 - `testcase_owner`
+
+### `testreport.testcase.flaky_failure_count` (count)
+
+This metric represents the number of flaky failed test cases.
+It has the following tags:
+
+- `testcase_name`
+- `testcase_file`
+- `testcase_owner`
+
+This action considers a test case as **flaky** if it was failed in the last attempt and succeeded in the current attempt.
 
 ### `testreport.testcase.duration` (distribution)
 
@@ -75,7 +86,7 @@ You can set `filter-test-case-slower-than` to send all test cases.
 ```yaml
 - uses: quipper/test-report-observability-action@v0
   with:
-    junit-xml-path: '**/junit.xml'
+    junit-xml-path: "**/junit.xml"
     filter-test-case-slower-than: 0
 ```
 
@@ -94,7 +105,7 @@ You can set `filter-test-file-slower-than` to send all test files.
 ```yaml
 - uses: quipper/test-report-observability-action@v0
   with:
-    junit-xml-path: '**/junit.xml'
+    junit-xml-path: "**/junit.xml"
     filter-test-file-slower-than: 0
 ```
 

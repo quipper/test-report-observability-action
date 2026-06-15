@@ -52,7 +52,7 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   core.info(JSON.stringify(metricsContext, undefined, 2))
   core.endGroup()
 
-  const metrics = getTestReportMetrics(testReport, metricsContext)
+  const metrics = getTestReportMetrics(testReport, flakyTestCases, metricsContext)
   const metricsClient = createMetricsClient(inputs)
   await metricsClient.submitMetrics(metrics.series, `${junitXmlFiles.length} files`)
   await metricsClient.submitDistributionPoints(metrics.distributionPointsSeries, `${junitXmlFiles.length} files`)
