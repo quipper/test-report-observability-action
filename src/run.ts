@@ -33,7 +33,7 @@ export const run = async (inputs: Inputs, octokit: Octokit, context: Context): P
   await uploadCurrentFailedTestReport(testReport, inputs, context)
   const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
 
-  await postComment(testReport, inputs.testCaseBaseDirectory, octokit, context)
+  await postComment(testReport, flakyTestCases, inputs.testCaseBaseDirectory, octokit, context)
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.
