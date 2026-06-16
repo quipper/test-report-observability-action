@@ -20,7 +20,6 @@ const FailedTestCase = z.object({
 export type FailedTestCase = z.infer<typeof FailedTestCase>
 
 const FailedTestReport = z.object({
-  workflow: z.string(),
   testCases: z.array(FailedTestCase),
 })
 
@@ -36,16 +35,16 @@ export const uploadCurrentFailedTestReport = async (
     return
   }
   const failedTestReport: FailedTestReport = {
-    workflow: context.workflow,
     testCases: failedTestCases,
   }
-  const failedTestReportArtifactName = `${config.failedTestReportArtifactNamePrefix}${context.runAttempt}`
-  core.info(`Uploading the artifact: ${failedTestReportArtifactName}`)
-  const tempDir = await fs.mkdtemp(path.join(context.runnerTemp, 'failed-test-report-'))
-  const reportFilePath = path.join(tempDir, 'report.json')
-  await fs.writeFile(reportFilePath, JSON.stringify(failedTestReport), 'utf-8')
-  const artifactClient = new DefaultArtifactClient()
-  await artifactClient.uploadArtifact(failedTestReportArtifactName, [reportFilePath], tempDir)
+  const artifactName = `${config.failedTestReportArtifactNamePrefix}${context.runAttempt}`
+  await core.group(`Uploading the artifact: ${artifactName}`, async () => {
+    const tempDir = await fs.mkdtemp(path.join(context.runnerTemp, 'failed-test-report-'))
+    const reportFilePath = path.join(tempDir, 'report.json')
+    await fs.writeFile(reportFilePath, JSON.stringify(failedTestReport), 'utf-8')
+    const artifactClient = new DefaultArtifactClient()
+    await artifactClient.uploadArtifact(artifactName, [reportFilePath], tempDir)
+  })
 }
 
 export const findFlakyTestCases = async (testReport: TestReport, config: FlakyTestConfig, context: Context) => {
@@ -79,21 +78,18 @@ const findLastFailedTestReport = async (
     return
   }
   const artifactClient = new DefaultArtifactClient()
-  const lastFailedTestReportArtifact = await artifactClient
-    .getArtifact(`${config.failedTestReportArtifactNamePrefix}${context.runAttempt - 1}`)
-    .catch((e) => {
-      core.info(`No artifact found for the last failed test report: ${e}`)
-    })
+  const artifactName = `${config.failedTestReportArtifactNamePrefix}${context.runAttempt - 1}`
+  const lastFailedTestReportArtifact = await artifactClient.getArtifact(artifactName).catch((e) => {
+    core.info(`No artifact found: ${artifactName}: ${e}`)
+  })
   if (lastFailedTestReportArtifact === undefined) {
     return
   }
-
-  core.info(
-    `Downloading the artifact: ${lastFailedTestReportArtifact.artifact.name} (${lastFailedTestReportArtifact.artifact.id})`,
-  )
-  const tempDir = await fs.mkdtemp(path.join(context.runnerTemp, 'failed-test-report-'))
-  await artifactClient.downloadArtifact(lastFailedTestReportArtifact.artifact.id, { path: tempDir })
-  const reportFilePath = path.join(tempDir, 'report.json')
-  const reportContent = await fs.readFile(reportFilePath, 'utf-8')
-  return FailedTestReport.parse(JSON.parse(reportContent))
+  return await core.group(`Downloading the artifact: ${lastFailedTestReportArtifact.artifact.name}`, async () => {
+    const tempDir = await fs.mkdtemp(path.join(context.runnerTemp, 'failed-test-report-'))
+    await artifactClient.downloadArtifact(lastFailedTestReportArtifact.artifact.id, { path: tempDir })
+    const reportFilePath = path.join(tempDir, 'report.json')
+    const reportContent = await fs.readFile(reportFilePath, 'utf-8')
+    return FailedTestReport.parse(JSON.parse(reportContent))
+  })
 }
