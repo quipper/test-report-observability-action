@@ -14,6 +14,7 @@ export type Context = {
   eventName: string
   refName: string
   runAttempt: number
+  runId: number
   runnerTemp: string
   serverUrl: string
   sha: string
@@ -28,6 +29,7 @@ export const getContext = async (): Promise<Context> => {
     eventName: getEnv('GITHUB_EVENT_NAME'),
     refName: getEnv('GITHUB_REF_NAME'),
     runAttempt: Number.parseInt(getEnv('GITHUB_RUN_ATTEMPT'), 10),
+    runId: Number.parseInt(getEnv('GITHUB_RUN_ID'), 10),
     runnerTemp: getEnv('RUNNER_TEMP'),
     serverUrl: getEnv('GITHUB_SERVER_URL'),
     sha: getEnv('GITHUB_SHA'),

@@ -18,7 +18,8 @@ const main = async (): Promise<void> => {
       datadogSite: core.getInput('datadog-site'),
       datadogTags: core.getMultilineInput('datadog-tags'),
     },
-    github.getContext(),
+    github.getOctokit(),
+    await github.getContext(),
   )
 }
 
