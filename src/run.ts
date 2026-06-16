@@ -6,8 +6,8 @@ import { findFlakyTestCases, uploadCurrentFailedTestReport } from './flaky.js'
 import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
 import { getTestReportMetrics } from './metrics.js'
-import { writeSummary } from './summary.js'
 import { sendFlakyTestCasesToSentry } from './sentry.js'
+import { writeSummary } from './summary.js'
 
 type Inputs = {
   junitXmlPath: string
