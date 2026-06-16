@@ -33,45 +33,78 @@ const format = (
   testCaseBaseDirectory: string,
   context: Context,
 ): string | undefined => {
-  const lines = []
-
-  const failedTestCases = testReport.testCases.filter((testCase) => !testCase.success)
-  if (failedTestCases.length > 0) {
-    lines.push(`## :x: Failed tests (${context.workflow})`)
-    for (const testCase of failedTestCases) {
-      lines.push(
-        `### ` +
-          `[${testCase.filename}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename})` +
-          `: ${testCase.name}`,
-      )
-      lines.push(`Owner: ${testCase.owners.join(', ')}`)
-      if (testCase.failureMessage) {
-        lines.push(...formatFailureMessage(testCase.failureMessage))
-      }
-    }
-  }
-
-  if (flakyTestCases.length > 0) {
-    lines.push(`## :warning: Flaky tests (${context.workflow})`)
-    for (const testCase of flakyTestCases) {
-      lines.push(
-        `### ` +
-          `[${testCase.filename}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename})` +
-          `: ${testCase.name}`,
-      )
-      lines.push(`Owner: ${testCase.owners.join(', ')}`)
-      if (testCase.failureMessage) {
-        lines.push(...formatFailureMessage(testCase.failureMessage))
-      }
-    }
-  }
-
+  const lines = [
+    ...formatFailedTestCases(testReport, testCaseBaseDirectory, context),
+    ...formatFlakyTestCases(flakyTestCases, testCaseBaseDirectory, context),
+  ]
   if (lines.length > 0) {
     lines.push(
       `[GitHub Actions](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
     )
     return lines.join('\n')
   }
+}
+
+const formatFailedTestCases = (testReport: TestReport, testCaseBaseDirectory: string, context: Context): string[] => {
+  const failedTestCases = testReport.testCases.filter((testCase) => !testCase.success)
+  if (failedTestCases.length === 0) {
+    return []
+  }
+  const lines = [`## :x: Failed tests (${context.workflow})`]
+  if (failedTestCases.length > 100) {
+    lines.push(`${failedTestCases.length} test cases failed.`)
+    return lines
+  }
+  if (failedTestCases.length > 10) {
+    for (const testCase of failedTestCases) {
+      lines.push(
+        `- ` +
+          `[${testCase.filename}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename})` +
+          `: ${testCase.name}` +
+          ` (${testCase.owners.join(', ')})`,
+      )
+    }
+    return lines
+  }
+  for (const testCase of failedTestCases) {
+    lines.push(
+      `### ` +
+        `[${testCase.filename}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename})` +
+        `: ${testCase.name}`,
+    )
+    lines.push(`Owner: ${testCase.owners.join(', ')}`)
+    if (testCase.failureMessage) {
+      lines.push(...formatFailureMessage(testCase.failureMessage))
+    }
+  }
+  return lines
+}
+
+const formatFlakyTestCases = (
+  flakyTestCases: FailedTestCase[],
+  testCaseBaseDirectory: string,
+  context: Context,
+): string[] => {
+  if (flakyTestCases.length === 0) {
+    return []
+  }
+  const lines = [`## :warning: Flaky tests (${context.workflow})`]
+  if (flakyTestCases.length > 10) {
+    lines.push(`${flakyTestCases.length} test cases are flaky.`)
+    return lines
+  }
+  for (const testCase of flakyTestCases) {
+    lines.push(
+      `### ` +
+        `[${testCase.filename}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/blob/${context.sha}/${testCaseBaseDirectory}/${testCase.filename})` +
+        `: ${testCase.name}`,
+    )
+    lines.push(`Owner: ${testCase.owners.join(', ')}`)
+    if (testCase.failureMessage) {
+      lines.push(...formatFailureMessage(testCase.failureMessage))
+    }
+  }
+  return lines
 }
 
 const formatFailureMessage = (failureMessage: string): string[] => {
