@@ -100,6 +100,18 @@ describe('parseJunitXml', () => {
     })
   })
 
+  it('parses XML with more than 1000 standard entity references', () => {
+    const name = 'a &quot;quoted&quot; name'
+    const testcases = Array.from(
+      { length: 1000 },
+      (_, i) => `<testcase name="${name} ${i}" time="1" file="file1"></testcase>`,
+    ).join('\n')
+    const xml = `<testsuite>${testcases}</testsuite>`
+
+    const junitXml = parseJunitXml(xml)
+    expect(junitXml.testsuite?.at(0)?.testcase).toHaveLength(1000)
+  })
+
   it('parses <failure> elements with text node', () => {
     const xml = `
       <testsuite>

@@ -23,16 +23,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: .node-version
-          package-manager-cache: false
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
       - run: pnpm run test
-      - run: pnpm run build
 
+  e2e-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .node-version
+      - run: npm install -g pnpm@latest-10
+      - run: pnpm i
+      - run: pnpm run test
+        continue-on-error: true
+        env:
+          ENABLE_FLAKY_TEST_FIXTURE: true
+      - run: pnpm run build
       - name: quipper/test-report-observability-action
         uses: ./
         with:
@@ -50,12 +63,11 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: .node-version
-          package-manager-cache: false
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
-      - run: pnpm run check --fix
-      - uses: int128/update-generated-files-action@9f29a0254cdbb49f0682e439d44c1cf7f05db7bf # v2.63.0
+      - run: pnpm run check
+      - uses: int128/update-generated-files-action@678c755dae6c86602016092994c428b76bf58526 # v2.97.0

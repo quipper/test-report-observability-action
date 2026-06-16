@@ -1,4 +1,5 @@
 import type { v1 } from '@datadog/datadog-api-client'
+import type { FailedTestCase } from './flaky.js'
 import type { TestCase, TestFile, TestReport } from './junitxml.js'
 
 export type Metrics = {
@@ -16,10 +17,15 @@ export type Context = {
   sendTestCaseFailure: boolean
 }
 
-export const getTestReportMetrics = (testReport: TestReport, context: Context): Metrics => {
+export const getTestReportMetrics = (
+  testReport: TestReport,
+  flakyTestCases: FailedTestCase[],
+  context: Context,
+): Metrics => {
   return joinMetrics(
     ...testReport.testFiles.map((testFile) => getTestFileMetrics(testFile, context)),
     ...testReport.testCases.map((testCase) => getTestCaseMetrics(testCase, context)),
+    ...flakyTestCases.map((testCase) => getFlakyTestCaseMetrics(testCase, context)),
   )
 }
 
@@ -87,6 +93,26 @@ const getTestCaseMetrics = (testCase: TestCase, context: Context): Metrics => {
     })
   }
 
+  return metrics
+}
+
+const getFlakyTestCaseMetrics = (testCase: FailedTestCase, context: Context): Metrics => {
+  const tags = [
+    ...context.tags,
+    `testcase_name:${testCase.name}`,
+    `testcase_file:${testCase.filename}`,
+    ...testCase.owners.map((owner) => `testcase_owner:${owner}`),
+  ]
+  const metrics: Metrics = {
+    series: [],
+    distributionPointsSeries: [],
+  }
+  metrics.series.push({
+    metric: `${context.prefix}.testcase.flaky_failure_count`,
+    points: [[context.timestamp, 1]],
+    type: 'count',
+    tags,
+  })
   return metrics
 }
 
