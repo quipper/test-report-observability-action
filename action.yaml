@@ -45,6 +45,10 @@ inputs:
   datadog-tags:
     description: Datadog tags (key:value of multiline string)
     required: false
+  enable-comment:
+    description: If true, post a comment to the pull request with the failed tests and flaky tests
+    required: true
+    default: 'true'
   token:
     description: GitHub token
     required: true
