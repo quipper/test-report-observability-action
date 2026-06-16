@@ -55,6 +55,7 @@ jobs:
           filter-test-case-slower-than: 0
           datadog-tags: |
             service:test-report-observability-action
+          sentry-dsn: ${{ secrets.SENTRY_DSN }}
 
   generate:
     runs-on: ubuntu-latest

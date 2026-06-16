@@ -45,6 +45,9 @@ inputs:
   datadog-tags:
     description: Datadog tags (key:value of multiline string)
     required: false
+  sentry-dsn:
+    description: Sentry DSN for sending the test cases
+    required: false
 
 runs:
   using: 'node24'

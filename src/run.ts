@@ -7,6 +7,7 @@ import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
 import { getTestReportMetrics } from './metrics.js'
 import { writeSummary } from './summary.js'
+import { sendFlakyTestCasesToSentry } from './sentry.js'
 
 type Inputs = {
   junitXmlPath: string
@@ -30,6 +31,8 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
 
   await uploadCurrentFailedTestReport(testReport, inputs, context)
   const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
+
+  sendFlakyTestCasesToSentry(flakyTestCases, inputs.testCaseBaseDirectory, context)
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.
