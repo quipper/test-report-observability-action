@@ -133,19 +133,20 @@ you can set `test-case-base-directory` to resolve the path.
 
 ### Inputs
 
-| Name                           | Default        | Description                                              |
-| ------------------------------ | -------------- | -------------------------------------------------------- |
-| `junit-xml-path`               | (required)     | Glob pattern to the JUnit XML file(s)                    |
-| `metric-name-prefix`           | `testreport`   | Prefix of the name of metrics                            |
-| `filter-test-file-slower-than` | 1              | Filter test files slower than the threshold (in seconds) |
-| `filter-test-case-slower-than` | 1              | Filter test cases slower than the threshold (in seconds) |
-| `enable-metrics`               | <sup>\*1</sup> | If false, do not send the metrics to Datadog             |
-| `send-test-case-success`       | false          | Send succeeded test cases                                |
-| `send-test-case-failure`       | true           | Send failed test cases                                   |
-| `test-case-base-directory`     | -              | Base directory to resolve the test case file path        |
-| `datadog-api-key`              | -              | Datadog API key                                          |
-| `datadog-site`                 | -              | Datadog site                                             |
-| `datadog-tags`                 | -              | Datadog tags                                             |
+| Name                                      | Default        | Description                                                               |
+| ----------------------------------------- | -------------- | ------------------------------------------------------------------------- |
+| `junit-xml-path`                          | (required)     | Glob pattern to the JUnit XML file(s)                                     |
+| `metric-name-prefix`                      | `testreport`   | Prefix of the name of metrics                                             |
+| `filter-test-file-slower-than`            | 1              | Filter test files slower than the threshold (in seconds)                  |
+| `filter-test-case-slower-than`            | 1              | Filter test cases slower than the threshold (in seconds)                  |
+| `failed-test-report-artifact-name-prefix` | <sup>\*1</sup> | The artifact name of the failed test report for detecting the flaky tests |
+| `test-case-base-directory`                | -              | Base directory to resolve the test case file path                         |
+| `enable-metrics`                          | <sup>\*1</sup> | If false, do not send the metrics to Datadog                              |
+| `send-test-case-success`                  | false          | Send succeeded test cases                                                 |
+| `send-test-case-failure`                  | true           | Send failed test cases                                                    |
+| `datadog-api-key`                         | -              | Datadog API key                                                           |
+| `datadog-site`                            | -              | Datadog site                                                              |
+| `datadog-tags`                            | -              | Datadog tags                                                              |
 
 <sup>\*1</sup> See [action.yaml](action.yaml) for the default value.
 
