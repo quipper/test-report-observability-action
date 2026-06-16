@@ -6,6 +6,7 @@ import { run } from './run.js'
 const main = async (): Promise<void> => {
   sentry.init({
     dsn: core.getInput('sentry-dsn') || undefined,
+    debug: true,
   })
   await run(
     {
