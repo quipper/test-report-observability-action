@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as glob from '@actions/glob'
 import { createFinder } from './codeowners.js'
 import { createMetricsClient } from './datadog.js'
+import { findFlakyTestCases, uploadCurrentFailedTestReport } from './flaky.js'
 import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
 import { getTestReportMetrics } from './metrics.js'
@@ -12,6 +13,7 @@ type Inputs = {
   metricNamePrefix: string
   filterTestFileSlowerThan: number
   filterTestCaseSlowerThan: number
+  failedTestReportArtifactNamePrefix: string
   sendTestCaseSuccess: boolean
   sendTestCaseFailure: boolean
   testCaseBaseDirectory: string
@@ -25,6 +27,9 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   const junitXmlGlob = await glob.create(inputs.junitXmlPath)
   const junitXmlFiles = await junitXmlGlob.glob()
   const testReport = await parseTestReportFiles(junitXmlFiles, await createFinder(inputs.testCaseBaseDirectory))
+
+  await uploadCurrentFailedTestReport(testReport, inputs, context)
+  const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
 
   const workflowTags = [
     // Keep less cardinality for cost perspective.
@@ -47,12 +52,12 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   core.info(JSON.stringify(metricsContext, undefined, 2))
   core.endGroup()
 
-  const metrics = getTestReportMetrics(testReport, metricsContext)
+  const metrics = getTestReportMetrics(testReport, flakyTestCases, metricsContext)
   const metricsClient = createMetricsClient(inputs)
   await metricsClient.submitMetrics(metrics.series, `${junitXmlFiles.length} files`)
   await metricsClient.submitDistributionPoints(metrics.distributionPointsSeries, `${junitXmlFiles.length} files`)
 
-  writeSummary(testReport, inputs.testCaseBaseDirectory, context)
+  writeSummary(testReport, flakyTestCases, inputs.testCaseBaseDirectory, context)
   await core.summary.write()
 }
 

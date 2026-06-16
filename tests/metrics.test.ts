@@ -89,7 +89,64 @@ describe('getTestReportMetrics', () => {
       sendTestCaseFailure: true,
     }
 
-    const metrics = getTestReportMetrics(testReport, context)
+    const metrics = getTestReportMetrics(testReport, [], context)
+    expect(metrics.series).toMatchSnapshot()
+  })
+
+  it('returns metrics with flaky test cases', () => {
+    const testReport: TestReport = {
+      testCases: [
+        {
+          name: 'testCase1',
+          filename: 'tests/registration.test.js',
+          time: 2.113871,
+          success: true,
+          owners: [],
+        },
+        {
+          name: 'testCase2',
+          filename: 'tests/registration.test.js',
+          time: 1.051,
+          success: true,
+          owners: [],
+        },
+        {
+          name: 'testCase3',
+          filename: 'tests/registration.test.js',
+          time: 3.441,
+          success: true,
+          owners: [],
+        },
+      ],
+      testFiles: [
+        {
+          filename: 'tests/registration.test.js',
+          totalTime: 14.651688,
+          totalTestCases: 9,
+          owners: [],
+        },
+      ],
+    }
+    const flakyTestCases = [
+      {
+        name: 'testCase2',
+        filename: 'tests/registration.test.js',
+        time: 1.051,
+        success: true,
+        owners: [],
+      },
+    ]
+    const context: Context = {
+      prefix: 'testreport',
+      tags: ['env:ci'],
+      timestamp: 1234567890,
+      filterTestFileSlowerThan: 1,
+      filterTestCaseSlowerThan: 1,
+      sendTestCaseSuccess: true,
+      sendTestCaseFailure: true,
+    }
+
+    const metrics = getTestReportMetrics(testReport, flakyTestCases, context)
     expect(metrics.series).toMatchSnapshot()
   })
 })
