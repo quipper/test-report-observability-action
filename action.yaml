@@ -45,6 +45,10 @@ inputs:
   datadog-tags:
     description: Datadog tags (key:value of multiline string)
     required: false
+  token:
+    description: GitHub token
+    required: true
+    default: ${{ github.token }}
 
 runs:
   using: 'node24'

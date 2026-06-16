@@ -147,6 +147,7 @@ you can set `test-case-base-directory` to resolve the path.
 | `datadog-api-key`                         | -              | Datadog API key                                                           |
 | `datadog-site`                            | -              | Datadog site                                                              |
 | `datadog-tags`                            | -              | Datadog tags                                                              |
+| `token`                                   | `github.token` | GitHub token                                                              |
 
 <sup>\*1</sup> See [action.yaml](action.yaml) for the default value.
 
