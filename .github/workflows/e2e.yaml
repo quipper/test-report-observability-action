@@ -29,14 +29,13 @@ jobs:
           node-version-file: .node-version
       - run: npm install -g pnpm@latest-10
       - run: pnpm i
+      - run: pnpm run build
 
       # The test fixture intentionally fails on the first attempt.
       - run: pnpm run test
         env:
           ENABLE_FLAKY_TEST_FIXTURE: true
 
-      - if: always()
-        run: pnpm run build
       - if: always()
         name: quipper/test-report-observability-action
         uses: ./
