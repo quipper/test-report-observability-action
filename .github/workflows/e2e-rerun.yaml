@@ -17,7 +17,4 @@ jobs:
     permissions:
       actions: write # To rerun workflows
     steps:
-      - uses: int128/rerun-workflows-action@9a774a5c2db202da4c12698a3933084fe9b114f1 # v1.3.0
-        with:
-          event: ${{ github.event.workflow_run.event }}
-          sha: ${{ github.event.workflow_run.head_sha }}
+      - uses: int128/rerun-workflows-action@7fc3185d4e932b0be58963f598ce394f8d8dc09a # v1.4.0
