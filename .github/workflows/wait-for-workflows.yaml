@@ -7,5 +7,15 @@ jobs:
   wait-for-workflows:
     runs-on: ubuntu-slim
     timeout-minutes: 15
+    permissions:
+      actions: write # To rerun workflows.
+      checks: read
     steps:
+      # Wait for the e2e workflow and rerun it.
+      - uses: int128/wait-for-workflows-action@ecb557dfcf83b82593cd728bd7b84775f27be669 # v1.76.0
+        with:
+          filter-workflow-names: e2e
+      - uses: int128/rerun-workflows-action@9a774a5c2db202da4c12698a3933084fe9b114f1 # v1.3.0
+
+      # Finally, wait for all workflows.
       - uses: int128/wait-for-workflows-action@ecb557dfcf83b82593cd728bd7b84775f27be669 # v1.76.0
