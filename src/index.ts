@@ -6,7 +6,6 @@ import { run } from './run.js'
 const main = async (): Promise<void> => {
   sentry.init({
     dsn: core.getInput('sentry-dsn') || undefined,
-    debug: true,
   })
   await run(
     {
@@ -21,7 +20,7 @@ const main = async (): Promise<void> => {
       enableMetrics: core.getBooleanInput('enable-metrics', { required: true }),
       datadogApiKey: core.getInput('datadog-api-key'),
       datadogSite: core.getInput('datadog-site'),
-      datadogTags: core.getMultilineInput('datadog-tags'),
+      tags: core.getMultilineInput('tags'),
     },
     github.getContext(),
   )
