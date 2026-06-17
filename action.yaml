@@ -42,8 +42,11 @@ inputs:
   datadog-site:
     description: Datadog site
     required: false
-  datadog-tags:
-    description: Datadog tags (key:value of multiline string)
+  sentry-dsn:
+    description: Sentry DSN for sending the test cases
+    required: false
+  tags:
+    description: Tags for Datadog and Sentry (key:value of multiline string)
     required: false
 
 runs:

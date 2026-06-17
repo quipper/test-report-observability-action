@@ -6,6 +6,7 @@ import { findFlakyTestCases, uploadCurrentFailedTestReport } from './flaky.js'
 import type { Context } from './github.js'
 import { parseTestReportFiles } from './junitxml.js'
 import { getTestReportMetrics } from './metrics.js'
+import { sendFlakyTestCasesToSentry } from './sentry.js'
 import { writeSummary } from './summary.js'
 
 type Inputs = {
@@ -20,7 +21,7 @@ type Inputs = {
   enableMetrics: boolean
   datadogApiKey: string
   datadogSite: string
-  datadogTags: string[]
+  tags: string[]
 }
 
 export const run = async (inputs: Inputs, context: Context): Promise<void> => {
@@ -31,17 +32,32 @@ export const run = async (inputs: Inputs, context: Context): Promise<void> => {
   await uploadCurrentFailedTestReport(testReport, inputs, context)
   const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
 
-  const workflowTags = [
-    // Keep less cardinality for cost perspective.
-    `repository_owner:${context.repo.owner}`,
-    `repository_name:${context.repo.repo}`,
-    `workflow_name:${context.workflow}`,
-    `event_name:${context.eventName}`,
-    `ref_name:${context.refName}`,
-  ]
+  sendFlakyTestCasesToSentry(flakyTestCases, {
+    testCaseBaseDirectory: inputs.testCaseBaseDirectory,
+    tags: [
+      `github.repository_owner:${context.repo.owner}`,
+      `github.repository_name:${context.repo.repo}`,
+      `github.workflow_name:${context.workflow}`,
+      `github.event_name:${context.eventName}`,
+      `github.ref_name:${context.refName}`,
+      `github.sha:${context.sha}`,
+      `github.workflow_run.url:${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+      `github.workflow_run.attempt:${context.runAttempt}`,
+      ...inputs.tags,
+    ],
+  })
+
   const metricsContext = {
     prefix: inputs.metricNamePrefix,
-    tags: [...workflowTags, ...inputs.datadogTags],
+    tags: [
+      // Keep less cardinality for cost perspective.
+      `repository_owner:${context.repo.owner}`,
+      `repository_name:${context.repo.repo}`,
+      `workflow_name:${context.workflow}`,
+      `event_name:${context.eventName}`,
+      `ref_name:${context.refName}`,
+      ...inputs.tags,
+    ],
     timestamp: unixTime(new Date()),
     filterTestFileSlowerThan: inputs.filterTestFileSlowerThan,
     filterTestCaseSlowerThan: inputs.filterTestCaseSlowerThan,

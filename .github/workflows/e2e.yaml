@@ -44,5 +44,6 @@ jobs:
           send-test-case-success: true
           filter-test-file-slower-than: 0
           filter-test-case-slower-than: 0
-          datadog-tags: |
+          sentry-dsn: ${{ secrets.SENTRY_DSN }}
+          tags: |
             service:test-report-observability-action
