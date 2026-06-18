@@ -21,8 +21,10 @@ const main = async (): Promise<void> => {
       datadogApiKey: core.getInput('datadog-api-key'),
       datadogSite: core.getInput('datadog-site'),
       tags: core.getMultilineInput('tags'),
+      enableComment: core.getBooleanInput('enable-comment', { required: true }),
     },
-    github.getContext(),
+    github.getOctokit(),
+    await github.getContext(),
   )
 }
 

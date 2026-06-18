@@ -1,6 +1,8 @@
 import * as core from '@actions/core'
 import * as glob from '@actions/glob'
+import type { Octokit } from '@octokit/action'
 import { createFinder } from './codeowners.js'
+import { postComment } from './comment.js'
 import { createMetricsClient } from './datadog.js'
 import { findFlakyTestCases, uploadCurrentFailedTestReport } from './flaky.js'
 import type { Context } from './github.js'
@@ -22,15 +24,20 @@ type Inputs = {
   datadogApiKey: string
   datadogSite: string
   tags: string[]
+  enableComment: boolean
 }
 
-export const run = async (inputs: Inputs, context: Context): Promise<void> => {
+export const run = async (inputs: Inputs, octokit: Octokit, context: Context): Promise<void> => {
   const junitXmlGlob = await glob.create(inputs.junitXmlPath)
   const junitXmlFiles = await junitXmlGlob.glob()
   const testReport = await parseTestReportFiles(junitXmlFiles, await createFinder(inputs.testCaseBaseDirectory))
 
   await uploadCurrentFailedTestReport(testReport, inputs, context)
   const flakyTestCases = await findFlakyTestCases(testReport, inputs, context)
+
+  if (inputs.enableComment) {
+    await postComment(testReport, flakyTestCases, inputs.testCaseBaseDirectory, octokit, context)
+  }
 
   sendFlakyTestCasesToSentry(flakyTestCases, {
     testCaseBaseDirectory: inputs.testCaseBaseDirectory,

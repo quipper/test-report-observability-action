@@ -148,6 +148,8 @@ you can set `test-case-base-directory` to resolve the path.
 | `datadog-site`                            | -              | Datadog site                                                              |
 | `sentry-dsn`                              | -              | Sentry DSN for sending the test cases                                     |
 | `tags`                                    | -              | Tags for Datadog and Sentry                                               |
+| `enable-comment`                          | true           | If true, post a comment with the failed tests and flaky tests             |
+| `token`                                   | `github.token` | GitHub token                                                              |
 
 <sup>\*1</sup> See [action.yaml](action.yaml) for the default value.
 
