@@ -146,7 +146,8 @@ you can set `test-case-base-directory` to resolve the path.
 | `send-test-case-failure`                  | true           | Send failed test cases                                                    |
 | `datadog-api-key`                         | -              | Datadog API key                                                           |
 | `datadog-site`                            | -              | Datadog site                                                              |
-| `datadog-tags`                            | -              | Datadog tags                                                              |
+| `sentry-dsn`                              | -              | Sentry DSN for sending the test cases                                     |
+| `tags`                                    | -              | Tags for Datadog and Sentry                                               |
 | `enable-comment`                          | true           | If true, post a comment with the failed tests and flaky tests             |
 | `token`                                   | `github.token` | GitHub token                                                              |
 

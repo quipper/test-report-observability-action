@@ -1,8 +1,12 @@
 import * as core from '@actions/core'
+import * as sentry from '@sentry/node-core/light'
 import * as github from './github.js'
 import { run } from './run.js'
 
 const main = async (): Promise<void> => {
+  sentry.init({
+    dsn: core.getInput('sentry-dsn') || undefined,
+  })
   await run(
     {
       junitXmlPath: core.getInput('junit-xml-path', { required: true }),
@@ -16,7 +20,7 @@ const main = async (): Promise<void> => {
       enableMetrics: core.getBooleanInput('enable-metrics', { required: true }),
       datadogApiKey: core.getInput('datadog-api-key'),
       datadogSite: core.getInput('datadog-site'),
-      datadogTags: core.getMultilineInput('datadog-tags'),
+      tags: core.getMultilineInput('tags'),
       enableComment: core.getBooleanInput('enable-comment', { required: true }),
     },
     github.getOctokit(),

@@ -19,6 +19,7 @@ export type Context = {
   serverUrl: string
   sha: string
   workflow: string
+  workspace: string
   payload: WebhookEvent
 }
 
@@ -34,6 +35,7 @@ export const getContext = async (): Promise<Context> => {
     serverUrl: getEnv('GITHUB_SERVER_URL'),
     sha: getEnv('GITHUB_SHA'),
     workflow: getEnv('GITHUB_WORKFLOW'),
+    workspace: getEnv('GITHUB_WORKSPACE'),
     payload: JSON.parse(await fs.readFile(getEnv('GITHUB_EVENT_PATH'), 'utf-8')) as WebhookEvent,
   }
 }
