@@ -12,7 +12,7 @@
     "@actions/glob": "0.7.0",
     "@datadog/datadog-api-client": "1.60.0",
     "@sentry/node-core": "10.66.0",
-    "fast-xml-parser": "5.9.3",
+    "fast-xml-parser": "5.10.1",
     "minimatch": "10.2.5",
     "zod": "4.4.3"
   },
