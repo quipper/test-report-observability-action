@@ -7,8 +7,10 @@ export type PlaywrightReportState = (typeof playwrightReportStates)[number]
 
 export type PlaywrightTestStatus = 'expected' | 'skipped' | 'unexpected' | 'flaky'
 
+type PlaywrightResultStatus = 'passed' | 'failed' | 'timedOut' | 'skipped' | 'interrupted'
+
 type PlaywrightTestResult = {
-  status: string
+  status: PlaywrightResultStatus
   duration: number
   retry: number
 }
@@ -50,7 +52,8 @@ export type PlaywrightReportInspection = {
 type RecordValue = Record<string, unknown>
 
 const knownTestStatuses = new Set<PlaywrightTestStatus>(['expected', 'skipped', 'unexpected', 'flaky'])
-const knownExpectedStatuses = new Set(['passed', 'failed', 'timedOut', 'skipped', 'interrupted'])
+const knownResultStatuses = new Set<PlaywrightResultStatus>(['passed', 'failed', 'timedOut', 'skipped', 'interrupted'])
+const knownExpectedStatuses = new Set<string>(knownResultStatuses)
 
 const isRecord = (value: unknown): value is RecordValue =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -272,6 +275,7 @@ const parseTest = (
     if (
       !isRecord(result) ||
       typeof result.status !== 'string' ||
+      !knownResultStatuses.has(result.status as PlaywrightResultStatus) ||
       !isFiniteNonNegativeNumber(result.duration) ||
       !isNonNegativeInteger(result.retry)
     ) {
@@ -279,7 +283,7 @@ const parseTest = (
       continue
     }
     parsedResults.push({
-      status: result.status,
+      status: result.status as PlaywrightResultStatus,
       duration: result.duration,
       retry: result.retry,
     })
@@ -354,7 +358,7 @@ const buildRetrySummary = (
       if (
         reportState === 'complete' &&
         test.configuredRetries > 0 &&
-        maxRetry === test.configuredRetries &&
+        maxRetry >= test.configuredRetries &&
         !test.results.some((result) => result.status === 'interrupted')
       ) {
         retryExhaustedTests.push(identifier)

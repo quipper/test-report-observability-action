@@ -35,14 +35,18 @@ const makeTest = (overrides: Record<string, unknown> = {}) => ({
 })
 
 describe('inspectPlaywrightReport', () => {
-  it.skipIf(!process.env.PLAYWRIGHT_JSON_REPORT)('accepts a real Playwright JSON report', async () => {
-    const inspection = await readPlaywrightReport([process.env.PLAYWRIGHT_JSON_REPORT as string])
+  it('accepts an official Playwright JSON report', async () => {
+    const reportPath = process.env.PLAYWRIGHT_JSON_REPORT ?? path.join(__dirname, 'fixtures/playwright.json')
+    const expectedTotal = process.env.PLAYWRIGHT_JSON_REPORT ? 52 : 1
+    const inspection = await readPlaywrightReport([reportPath])
 
     expect(inspection.state).toBe('complete')
     expect(inspection.summary).toMatchObject({
-      totalTests: 52,
+      totalTests: expectedTotal,
     })
-    expect(Object.values(inspection.summary.statusCounts).reduce((total, count) => total + count, 0)).toBe(52)
+    expect(Object.values(inspection.summary.statusCounts).reduce((total, count) => total + count, 0)).toBe(
+      expectedTotal,
+    )
   })
 
   it('accepts a complete report without retries', () => {
@@ -113,6 +117,38 @@ describe('inspectPlaywrightReport', () => {
     expect(inspection.state).toBe('complete')
     expect(inspection.summary.finalFailureTests).toHaveLength(1)
     expect(inspection.summary.retryExhaustedTests).toHaveLength(1)
+  })
+
+  it('records a final failure after a suite-level retry override', () => {
+    const inspection = inspectPlaywrightReport(
+      makeReport(
+        makeTest({
+          status: 'unexpected',
+          results: [
+            { status: 'failed', duration: 120, retry: 0 },
+            { status: 'failed', duration: 80, retry: 1 },
+            { status: 'failed', duration: 60, retry: 2 },
+          ],
+        }),
+        { expected: 0, skipped: 0, unexpected: 1, flaky: 0 },
+      ),
+    )
+
+    expect(inspection.state).toBe('complete')
+    expect(inspection.summary.retryExhaustedTests).toHaveLength(1)
+  })
+
+  it('rejects an unknown result status', () => {
+    const inspection = inspectPlaywrightReport(
+      makeReport(
+        makeTest({
+          results: [{ status: 'corrupted', duration: 120, retry: 0 }],
+        }),
+      ),
+    )
+
+    expect(inspection.state).toBe('invalid')
+    expect(inspection.reasonCodes).toEqual(['schema_invalid'])
   })
 
   it('accepts an explicitly skipped test with a skipped result', () => {

@@ -1,0 +1,5 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="0.01">
+  <testsuite name="nested.fixture" timestamp="2026-01-01T00:00:00.000Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.01" errors="0">
+    <testcase name="[chromium] group › passes" classname="nested.fixture" time="0.01"></testcase>
+  </testsuite>
+</testsuites>

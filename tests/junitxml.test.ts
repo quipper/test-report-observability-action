@@ -13,21 +13,21 @@ import {
 } from '../src/junitxml.js'
 
 describe('parseTestReportFiles', () => {
-  it.skipIf(!process.env.PLAYWRIGHT_JUNIT_REPORT)(
-    'parses the official Playwright JUnit report with the file fallback',
-    async () => {
-      const baseDirectory = process.env.PLAYWRIGHT_TEST_CASE_BASE_DIRECTORY as string
-      const resolveTestCaseFile = await createTestCaseFileResolver(baseDirectory, 'unique-classname-basename')
-      const testReport = await parseTestReportFiles(
-        [process.env.PLAYWRIGHT_JUNIT_REPORT as string],
-        () => [],
-        resolveTestCaseFile,
-      )
+  it('parses the official Playwright JUnit report with the file fallback', async () => {
+    const reportPath = process.env.PLAYWRIGHT_JUNIT_REPORT ?? path.join(__dirname, 'fixtures/playwright-junit.xml')
+    const baseDirectory =
+      process.env.PLAYWRIGHT_TEST_CASE_BASE_DIRECTORY ?? path.join(__dirname, 'fixtures/playwright-tests')
+    const expectedTotal = process.env.PLAYWRIGHT_JUNIT_REPORT ? 52 : 1
+    const resolveTestCaseFile = await createTestCaseFileResolver(baseDirectory, 'unique-classname-basename')
+    const testReport = await parseTestReportFiles([reportPath], () => [], resolveTestCaseFile)
 
-      expect(testReport.testCases).toHaveLength(52)
+    expect(testReport.testCases).toHaveLength(expectedTotal)
+    if (process.env.PLAYWRIGHT_JUNIT_REPORT) {
       expect(testReport.testCases.find((testCase) => testCase.filename.includes('learning/'))).toBeDefined()
-    },
-  )
+    } else {
+      expect(testReport.testCases[0].filename).toBe('nested.fixture')
+    }
+  })
 
   it('should parse rspec.xml', async () => {
     const testReportFiles = [path.join(__dirname, 'fixtures/rspec1.xml'), path.join(__dirname, 'fixtures/rspec2.xml')]

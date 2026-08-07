@@ -123,6 +123,26 @@ const completeReport = {
   stats: { expected: 1, skipped: 0, unexpected: 0, flaky: 0 },
 }
 
+const invalidResultStatusReport = {
+  ...completeReport,
+  suites: [
+    {
+      ...completeReport.suites[0],
+      specs: [
+        {
+          ...completeReport.suites[0].specs[0],
+          tests: [
+            {
+              ...completeReport.suites[0].specs[0].tests[0],
+              results: [{ status: 'corrupted', duration: 10, retry: 0 }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
 const writeReport = async (report: unknown): Promise<void> => {
   await fs.writeFile(path.join(directory, 'report.json'), JSON.stringify(report), 'utf8')
 }
@@ -152,6 +172,7 @@ describe('run', () => {
   it.each([
     ['missing', undefined],
     ['invalid', '{invalid'],
+    ['invalid result status', JSON.stringify(invalidResultStatusReport)],
     ['incomplete', JSON.stringify({ ...completeReport, errors: [{ message: 'test failed' }] })],
   ])('suppresses observation side effects for a %s Playwright report', async (_state, reportContent) => {
     if (reportContent !== undefined) {

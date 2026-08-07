@@ -173,6 +173,7 @@ To resolve its `classname` basename below a repository directory, enable the opt
 
 When `require-complete-playwright-report` is enabled, missing, invalid, or incomplete Playwright reports suppress metrics and are reported in the Job Summary.
 The retry summary contains test identifiers and retry counts, but not error messages, stack traces, standard output, or attachments.
+The official JSON report does not include a test's effective suite-level retry setting, so retry exhaustion is reported only when the observed attempts reach the configured project retry count.
 Existing JUnit-only users are unchanged when these inputs are omitted.
 
 ### Outputs

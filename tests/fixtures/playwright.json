@@ -1,0 +1,49 @@
+{
+  "config": {
+    "projects": [
+      {
+        "name": "chromium",
+        "retries": 1
+      }
+    ]
+  },
+  "suites": [
+    {
+      "title": "nested.fixture",
+      "file": "nested.fixture",
+      "specs": [],
+      "suites": [
+        {
+          "title": "group",
+          "file": "nested.fixture",
+          "specs": [
+            {
+              "title": "passes",
+              "tests": [
+                {
+                  "projectName": "chromium",
+                  "expectedStatus": "passed",
+                  "status": "expected",
+                  "results": [
+                    {
+                      "status": "passed",
+                      "duration": 10,
+                      "retry": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
