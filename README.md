@@ -141,6 +141,10 @@ you can set `test-case-base-directory` to resolve the path.
 | `filter-test-case-slower-than`            | 1              | Filter test cases slower than the threshold (in seconds)                  |
 | `failed-test-report-artifact-name-prefix` | <sup>\*1</sup> | The artifact name of the failed test report for detecting the flaky tests |
 | `test-case-base-directory`                | -              | Base directory to resolve the test case file path                         |
+| `test-case-file-fallback`                 | `none`         | Fallback to resolve a missing JUnit testcase file attribute               |
+| `playwright-json-path`                    | -              | Glob pattern to the Playwright JSON report                                 |
+| `require-complete-playwright-report`      | `false`        | Suppress metrics unless the Playwright JSON report is complete             |
+| `playwright-retry-summary-path`            | -              | Path for a sanitized Playwright retry summary JSON                         |
 | `enable-metrics`                          | <sup>\*1</sup> | If false, do not send the metrics to Datadog                              |
 | `send-test-case-success`                  | false          | Send succeeded test cases                                                 |
 | `send-test-case-failure`                  | true           | Send failed test cases                                                    |
@@ -151,6 +155,28 @@ you can set `test-case-base-directory` to resolve the path.
 
 <sup>\*1</sup> See [action.yaml](action.yaml) for the default value.
 
+## Playwright reports
+
+The official Playwright JUnit reporter does not include a `file` attribute on each testcase.
+To resolve its `classname` basename below a repository directory, enable the opt-in fallback:
+
+```yaml
+- uses: quipper/test-report-observability-action@v0
+  with:
+    junit-xml-path: qlearn-react/.test/e2e/junit.xml
+    test-case-base-directory: qlearn-react/e2e/tests
+    test-case-file-fallback: unique-classname-basename
+    playwright-json-path: qlearn-react/.test/e2e/json/report.json
+    require-complete-playwright-report: true
+    playwright-retry-summary-path: qlearn-react/.test/e2e/playwright-retry-summary.json
+```
+
+When `require-complete-playwright-report` is enabled, missing, invalid, or incomplete Playwright reports suppress metrics and are reported in the Job Summary.
+The retry summary contains test identifiers and retry counts, but not error messages, stack traces, standard output, or attachments.
+Existing JUnit-only users are unchanged when these inputs are omitted.
+
 ### Outputs
 
-None.
+| Name | Description |
+| ---- | ----------- |
+| `playwright-report-state` | The Playwright report state when `playwright-json-path` is configured |
