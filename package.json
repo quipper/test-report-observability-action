@@ -13,7 +13,7 @@
     "@datadog/datadog-api-client": "1.60.0",
     "@sentry/node-core": "10.68.0",
     "fast-xml-parser": "5.10.1",
-    "minimatch": "10.2.5",
+    "minimatch": "10.2.6",
     "zod": "4.4.3"
   },
   "devDependencies": {
