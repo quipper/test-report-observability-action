@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as sentry from '@sentry/node-core/light'
 import * as github from './github.js'
+import type { TestCaseFileFallback } from './junitxml.js'
 import { run } from './run.js'
 
 const main = async (): Promise<void> => {
@@ -17,6 +18,10 @@ const main = async (): Promise<void> => {
       sendTestCaseSuccess: core.getBooleanInput('send-test-case-success', { required: true }),
       sendTestCaseFailure: core.getBooleanInput('send-test-case-failure', { required: true }),
       testCaseBaseDirectory: core.getInput('test-case-base-directory'),
+      testCaseFileFallback: core.getInput('test-case-file-fallback') as TestCaseFileFallback,
+      playwrightJsonPath: core.getInput('playwright-json-path'),
+      requireCompletePlaywrightReport: core.getBooleanInput('require-complete-playwright-report'),
+      playwrightRetrySummaryPath: core.getInput('playwright-retry-summary-path'),
       enableMetrics: core.getBooleanInput('enable-metrics', { required: true }),
       datadogApiKey: core.getInput('datadog-api-key'),
       datadogSite: core.getInput('datadog-site'),
