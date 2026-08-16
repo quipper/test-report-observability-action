@@ -12,11 +12,11 @@ jobs:
       checks: read
     steps:
       # Wait for the e2e workflow and rerun it.
-      - uses: int128/wait-for-workflows-action@9c8c9b0ef4958709c642362e97b191dc9660ef31 # v1.87.0
+      - uses: int128/wait-for-workflows-action@2875ef6993779fbdcabf6c04d6c66e1278042b0e # v1.92.0
         continue-on-error: true
         with:
           filter-workflow-names: e2e
       - uses: int128/rerun-workflows-action@31acb5ea947ea683732e58f8b7e816384e218551 # v1.12.0
 
       # Finally, wait for all workflows.
-      - uses: int128/wait-for-workflows-action@9c8c9b0ef4958709c642362e97b191dc9660ef31 # v1.87.0
+      - uses: int128/wait-for-workflows-action@2875ef6993779fbdcabf6c04d6c66e1278042b0e # v1.92.0
