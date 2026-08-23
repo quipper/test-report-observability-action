@@ -10,7 +10,7 @@
     "@actions/artifact": "6.2.1",
     "@actions/core": "3.0.1",
     "@actions/glob": "0.7.0",
-    "@datadog/datadog-api-client": "1.61.0",
+    "@datadog/datadog-api-client": "1.62.0",
     "@sentry/node-core": "10.69.0",
     "fast-xml-parser": "5.10.1",
     "minimatch": "10.2.6",
