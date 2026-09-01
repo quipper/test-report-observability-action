@@ -1,7 +1,9 @@
 import * as fs from 'node:fs/promises'
+import * as os from 'node:os'
 import * as path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  createTestCaseFileResolver,
   findTestCasesFromJunitXml,
   groupTestCasesByTestFile,
   parseJunitXml,
@@ -11,6 +13,22 @@ import {
 } from '../src/junitxml.js'
 
 describe('parseTestReportFiles', () => {
+  it('parses the official Playwright JUnit report with the file fallback', async () => {
+    const reportPath = process.env.PLAYWRIGHT_JUNIT_REPORT ?? path.join(__dirname, 'fixtures/playwright-junit.xml')
+    const baseDirectory =
+      process.env.PLAYWRIGHT_TEST_CASE_BASE_DIRECTORY ?? path.join(__dirname, 'fixtures/playwright-tests')
+    const expectedTotal = process.env.PLAYWRIGHT_JUNIT_REPORT ? 52 : 1
+    const resolveTestCaseFile = await createTestCaseFileResolver(baseDirectory, 'unique-classname-basename')
+    const testReport = await parseTestReportFiles([reportPath], () => [], resolveTestCaseFile)
+
+    expect(testReport.testCases).toHaveLength(expectedTotal)
+    if (process.env.PLAYWRIGHT_JUNIT_REPORT) {
+      expect(testReport.testCases.find((testCase) => testCase.filename.includes('learning/'))).toBeDefined()
+    } else {
+      expect(testReport.testCases[0].filename).toBe('nested.fixture')
+    }
+  })
+
   it('should parse rspec.xml', async () => {
     const testReportFiles = [path.join(__dirname, 'fixtures/rspec1.xml'), path.join(__dirname, 'fixtures/rspec2.xml')]
     const testReport = await parseTestReportFiles(testReportFiles, () => [])
@@ -171,6 +189,96 @@ describe('findTestCasesFromJunitXml', () => {
       { name: 'test2', filename: 'file2', time: 2, success: true, owners: [] },
       { name: 'test3', filename: 'file1', time: 3, success: true, owners: [] },
     ])
+  })
+
+  it('resolves an official Playwright classname basename uniquely below the base directory', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'test-report-observability-action-'))
+    await fs.mkdir(path.join(directory, 'learning'), { recursive: true })
+    await fs.writeFile(path.join(directory, 'learning/self-study.spec.ts'), '')
+    try {
+      const resolveTestCaseFile = await createTestCaseFileResolver(directory, 'unique-classname-basename')
+      const junitXml = {
+        testsuite: [
+          {
+            testcase: [
+              {
+                '@_name': 'test1',
+                '@_time': 1,
+                '@_classname': 'self-study.spec.ts',
+              },
+            ],
+          },
+        ],
+      }
+      expect(findTestCasesFromJunitXml(junitXml, () => [], resolveTestCaseFile)).toMatchObject([
+        { filename: 'learning/self-study.spec.ts' },
+      ])
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true })
+    }
+  })
+
+  it('accepts an official skipped testcase without a time attribute', () => {
+    const junitXml = parseJunitXml(`
+      <testsuite>
+        <testcase name="skipped" classname="app-shell.spec.ts">
+          <skipped></skipped>
+        </testcase>
+      </testsuite>
+    `)
+
+    expect(
+      findTestCasesFromJunitXml(
+        junitXml,
+        () => [],
+        () => 'app-shell.spec.ts',
+      ),
+    ).toEqual([
+      {
+        name: 'skipped',
+        filename: 'app-shell.spec.ts',
+        owners: [],
+        time: 0,
+        success: true,
+      },
+    ])
+  })
+
+  it('rejects a non-skipped testcase without a time attribute', () => {
+    expect(() =>
+      parseJunitXml(`
+        <testsuite>
+          <testcase name="missing-time" file="app-shell.spec.ts"></testcase>
+        </testsuite>
+      `),
+    ).toThrow('time')
+  })
+
+  it('fails closed when a classname basename is ambiguous', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'test-report-observability-action-'))
+    await fs.mkdir(path.join(directory, 'one'), { recursive: true })
+    await fs.mkdir(path.join(directory, 'two'), { recursive: true })
+    await fs.writeFile(path.join(directory, 'one/duplicate.spec.ts'), '')
+    await fs.writeFile(path.join(directory, 'two/duplicate.spec.ts'), '')
+    try {
+      const resolveTestCaseFile = await createTestCaseFileResolver(directory, 'unique-classname-basename')
+      const junitXml = {
+        testsuite: [
+          {
+            testcase: [
+              {
+                '@_name': 'test1',
+                '@_time': 1,
+                '@_classname': 'duplicate.spec.ts',
+              },
+            ],
+          },
+        ],
+      }
+      expect(() => findTestCasesFromJunitXml(junitXml, () => [], resolveTestCaseFile)).toThrow('ambiguous')
+    } finally {
+      await fs.rm(directory, { recursive: true, force: true })
+    }
   })
 })
 

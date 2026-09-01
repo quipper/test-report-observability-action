@@ -24,6 +24,20 @@ inputs:
   test-case-base-directory:
     description: Base directory to resolve the test case file path
     required: false
+  test-case-file-fallback:
+    description: Fallback for resolving a JUnit testcase file when the file attribute is missing
+    required: false
+    default: none
+  playwright-json-path:
+    description: Glob pattern to the Playwright JSON report for completeness and retry validation
+    required: false
+  require-complete-playwright-report:
+    description: If true, suppress metrics unless the Playwright JSON report is complete
+    required: true
+    default: 'false'
+  playwright-retry-summary-path:
+    description: Path to write a sanitized Playwright retry summary JSON
+    required: false
   enable-metrics:
     description: If false, do not send the metrics to Datadog
     required: true
@@ -48,6 +62,10 @@ inputs:
   tags:
     description: Tags for Datadog and Sentry (key:value of multiline string)
     required: false
+
+outputs:
+  playwright-report-state:
+    description: The Playwright report state when playwright-json-path is configured
 
 runs:
   using: 'node24'

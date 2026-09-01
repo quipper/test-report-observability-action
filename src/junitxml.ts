@@ -18,11 +18,19 @@ export type TestFile = {
 
 export type FindOwners = (filename: string) => string[]
 
-export const parseTestReportFiles = async (testReportFiles: string[], findOwners: FindOwners): Promise<TestReport> => {
+export type TestCaseFileFallback = 'none' | 'unique-classname-basename'
+
+export type TestCaseFileResolver = (testCase: { name: string; classname?: string }) => string
+
+export const parseTestReportFiles = async (
+  testReportFiles: string[],
+  findOwners: FindOwners,
+  resolveTestCaseFile?: TestCaseFileResolver,
+): Promise<TestReport> => {
   const junitXmls = await parseTestReportFilesToJunitXml(testReportFiles)
   const allTestCases: TestCase[] = []
   for (const junitXml of junitXmls) {
-    const testCases = findTestCasesFromJunitXml(junitXml, findOwners)
+    const testCases = findTestCasesFromJunitXml(junitXml, findOwners, resolveTestCaseFile)
     allTestCases.push(...testCases)
   }
   core.info(`Found ${allTestCases.length} test cases in the test reports`)
@@ -58,7 +66,11 @@ export type TestCase = {
   failureMessage?: string
 }
 
-export const findTestCasesFromJunitXml = (junitXml: JunitXml, findOwners: FindOwners): TestCase[] => {
+export const findTestCasesFromJunitXml = (
+  junitXml: JunitXml,
+  findOwners: FindOwners,
+  resolveTestCaseFile?: TestCaseFileResolver,
+): TestCase[] => {
   const root = junitXml.testsuites?.testsuite ?? junitXml.testsuite ?? []
 
   function* visit(testSuite: JunitXmlTestSuite): Generator<TestCase> {
@@ -71,16 +83,25 @@ export const findTestCasesFromJunitXml = (junitXml: JunitXml, findOwners: FindOw
       if (mochaRootSuiteFilename) {
         return mochaRootSuiteFilename
       }
+      if (resolveTestCaseFile) {
+        return resolveTestCaseFile({
+          name: junitXmlTestCase['@_name'],
+          classname: junitXmlTestCase['@_classname'],
+        })
+      }
       throw new Error(`Element <testcase> must have "file" attribute (name=${junitXmlTestCase['@_name']})`)
     }
 
     for (const junitXmlTestCase of testSuite.testcase ?? []) {
+      if (junitXmlTestCase['@_time'] === undefined && junitXmlTestCase.skipped === undefined) {
+        throw new Error(`Element <testcase> must have "time" attribute (name=${junitXmlTestCase['@_name']})`)
+      }
       const filename = path.normalize(determineTestCaseFilename(junitXmlTestCase))
       yield {
         name: junitXmlTestCase['@_name'],
         filename,
         owners: findOwners(filename),
-        time: junitXmlTestCase['@_time'],
+        time: junitXmlTestCase['@_time'] ?? 0,
         success: !junitXmlTestCase.failure && !junitXmlTestCase.error,
         failureMessage:
           getTestCaseFailureMessage(junitXmlTestCase.failure) ?? getTestCaseFailureMessage(junitXmlTestCase.error),
@@ -154,8 +175,10 @@ type JunitXmlTestCaseFailure = z.infer<typeof JunitXmlTestCaseFailure>
 
 const JunitXmlTestCase = z.object({
   '@_name': z.string(),
-  '@_time': z.number(),
+  '@_time': z.number().optional(),
   '@_file': z.string().optional(),
+  '@_classname': z.string().optional(),
+  skipped: z.unknown().optional(),
   failure: JunitXmlTestCaseFailure.optional(),
   error: JunitXmlTestCaseFailure.optional(),
 })
@@ -206,5 +229,78 @@ export const parseJunitXml = (xml: string | Buffer): JunitXml => {
     },
   })
   const parsed = parser.parse(xml)
-  return JunitXml.parse(parsed)
+  const junitXml = JunitXml.parse(parsed)
+  validateTestCaseTimes(junitXml)
+  return junitXml
+}
+
+const validateTestCaseTimes = (junitXml: JunitXml): void => {
+  const root = junitXml.testsuites?.testsuite ?? junitXml.testsuite ?? []
+  const visit = (testSuite: JunitXmlTestSuite): void => {
+    for (const testCase of testSuite.testcase ?? []) {
+      if (testCase['@_time'] === undefined && testCase.skipped === undefined) {
+        throw new Error(`Element <testcase> must have "time" attribute (name=${testCase['@_name']})`)
+      }
+    }
+    for (const nestedTestSuite of testSuite.testsuite ?? []) {
+      visit(nestedTestSuite)
+    }
+  }
+  for (const testSuite of root) {
+    visit(testSuite)
+  }
+}
+
+export const createTestCaseFileResolver = async (
+  baseDirectory: string,
+  fallback: TestCaseFileFallback,
+): Promise<TestCaseFileResolver | undefined> => {
+  if (fallback === 'none') {
+    return
+  }
+  if (fallback !== 'unique-classname-basename') {
+    throw new Error(`Unsupported test case file fallback: ${fallback}`)
+  }
+  if (!baseDirectory) {
+    throw new Error('test-case-base-directory is required for classname basename fallback')
+  }
+
+  const resolvedBaseDirectory = path.resolve(baseDirectory)
+  const files = await listFiles(resolvedBaseDirectory)
+  const filesByBasename = new Map<string, string[]>()
+  for (const file of files) {
+    const basename = path.basename(file)
+    const matches = filesByBasename.get(basename) ?? []
+    matches.push(file)
+    filesByBasename.set(basename, matches)
+  }
+
+  return ({ name, classname }) => {
+    if (!classname) {
+      throw new Error(`Cannot resolve JUnit testcase file without classname (name=${name})`)
+    }
+    const basename = path.basename(classname)
+    const matches = filesByBasename.get(basename) ?? []
+    if (matches.length === 0) {
+      throw new Error(`Cannot resolve JUnit testcase file (classname=${classname})`)
+    }
+    if (matches.length > 1) {
+      throw new Error(`Cannot resolve ambiguous JUnit testcase file (classname=${classname})`)
+    }
+    return path.normalize(path.relative(resolvedBaseDirectory, matches[0]))
+  }
+}
+
+const listFiles = async (directory: string): Promise<string[]> => {
+  const entries = await fs.readdir(directory, { withFileTypes: true })
+  const files: string[] = []
+  for (const entry of entries) {
+    const file = path.join(directory, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...(await listFiles(file)))
+    } else if (entry.isFile()) {
+      files.push(file)
+    }
+  }
+  return files.sort()
 }
