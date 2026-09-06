@@ -14,7 +14,7 @@
     "@sentry/node-core": "10.72.0",
     "fast-xml-parser": "5.11.1",
     "minimatch": "10.2.6",
-    "zod": "4.4.3"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
