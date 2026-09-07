@@ -12,9 +12,9 @@ export const truncateFailureMessage = (message?: string) => {
   if (typeof message !== 'string') {
     return
   }
-  const ln = message.search(/$/m);
+  const ln = message.search(/$/m)
   if (ln > 0 && message.length !== ln) {
-    return message.slice(0, ln) + "\n(truncated...)"
+    return message.slice(0, ln) + '\n(truncated...)'
   } else {
     return message
   }
