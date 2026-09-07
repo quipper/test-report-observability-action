@@ -7,6 +7,19 @@ type SentryContext = {
   tags: string[]
 }
 
+// export this function for testing.
+export const truncateFailureMessage = (message?: string) => {
+  if (typeof message !== 'string') {
+    return
+  }
+  const ln = message.search(/$/m);
+  if (ln > 0 && message.length !== ln) {
+    return message.slice(0, ln) + "\n(truncated...)"
+  } else {
+    return message
+  }
+}
+
 export const sendFlakyTestCasesToSentry = (flakyTestCases: FailedTestCase[], context: SentryContext) => {
   const tags = Object.fromEntries(
     context.tags.map((tag) => {
@@ -30,7 +43,7 @@ export const sendFlakyTestCasesToSentry = (flakyTestCases: FailedTestCase[], con
           {
             module: testFilePath,
             type: testCase.name,
-            value: testCase.failureMessage,
+            value: truncateFailureMessage(testCase.failureMessage),
             stacktrace: {
               frames: [
                 {
