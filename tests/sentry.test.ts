@@ -15,7 +15,6 @@ describe('truncateFailureMessage', () => {
       expected: 'Error: something wrong\n(truncated...)',
     },
   ])(`truncateFailureMessage($given) should output $expected`, ({ given, expected }) => {
-    console.log('%o %o %o', given, expected, truncateFailureMessage(given))
     expect(truncateFailureMessage(given)).toEqual(expected)
   })
 })
