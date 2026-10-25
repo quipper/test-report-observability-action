@@ -16,7 +16,7 @@ jobs:
         continue-on-error: true
         with:
           filter-workflow-names: e2e
-      - uses: int128/rerun-workflows-action@65f77ab16f268a2311a1e2ebfac34a3ec4be7bb7 # v1.16.0
+      - uses: int128/rerun-workflows-action@cc8ff032980fe32e2c8d84c600de1fa0deeef7e0 # v1.18.0
 
       # Finally, wait for all workflows.
       - uses: int128/wait-for-workflows-action@78ec5cc01a1e58485768a6f2002f55692b071d57 # v1.99.0
