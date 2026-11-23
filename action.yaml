@@ -12,11 +12,11 @@ inputs:
   filter-test-file-slower-than:
     description: Filter test files slower than the threshold (in seconds)
     required: true
-    default: '1'
+    default: "1"
   filter-test-case-slower-than:
     description: Filter test cases slower than the threshold (in seconds)
     required: true
-    default: '1'
+    default: "1"
   failed-test-report-artifact-name-prefix:
     description: The artifact name of the failed test report for detecting the flaky tests
     required: true
@@ -31,15 +31,15 @@ inputs:
   send-test-case-success:
     description: Send succeeded test cases
     required: true
-    default: 'false'
+    default: "false"
   send-test-case-failure:
     description: Send failed test cases
     required: true
-    default: 'true'
+    default: "true"
   detect-flaky-test-cases-in-retries:
     description: Detect flaky test cases that passed on a retry within the same run
     required: true
-    default: 'false'
+    default: "false"
   datadog-api-key:
     description: Datadog API key
     required: false
@@ -54,5 +54,5 @@ inputs:
     required: false
 
 runs:
-  using: 'node24'
-  main: 'dist/index.js'
+  using: "node24"
+  main: "dist/index.js"
